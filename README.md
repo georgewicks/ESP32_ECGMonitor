@@ -1,53 +1,38 @@
-| Supported Targets | ESP32 | ESP32-C2 | ESP32-C3 | ESP32-C5 | ESP32-C6 | ESP32-C61 | ESP32-H2 | ESP32-H21 | ESP32-H4 | ESP32-P4 | ESP32-S2 | ESP32-S3 | Linux |
-| ----------------- | ----- | -------- | -------- | -------- | -------- | --------- | -------- | --------- | -------- | -------- | -------- | -------- | ----- |
+# ECGMonitor
+* Low-cost continuous real-time ECG monitor using ESP-IDF
+![ECGMonitor](images/ECG-Flow.jpg)
+* A rough sketch to illustrate how the ECG Monitor system works.
+    * The electrodes (0) are placed on the patient being monitored.
+    * The electrode wire bundle is connected to a AD8232 (1), a heart rate front end.
+    * The signal data from the AD8232 is attached to the ADS1115 (2), a 16-bit analog-to-digital converter.
+    * The digitized data is collected from the I2C serial bus (the wires labeled (4) and (5)), and processed by the ESP32 DevKit microcontroller (3).
+    * The data and analysis is recorded to the MicroSD adapter board (6).
+    * The RTC (Real-time clock (7)) will add time data that is inserted into the MicroSD adapter (6), thus providing time stamped ECG charting for clinical technicians who are monitoring the data.
 
-# Hello World Example
+* The primary hardware components of the project are:
+    - ESP32 DevKit WROOM-32U.
+    - (1) ADS1115 Breakout boards. 16-bit ADC, 4 ADC channels
+    - (4 for a full 12 electrode setup) AD8232 Physiological Monitor.
+    - RTC. Needed for real-time charting updates for time stamping. (DS3231)
+    - MicroSD 8GB Adapter - Recording ECG Traces. (SDMMC)
 
-Starts a FreeRTOS task to print "Hello World".
+* The primary software components of the project are:
+    * We will be using ESP-IDF, v5.2.7. This will necessitate the use of the I2C_master driver.
+    * The ESP-IDF package includes a Real Time Operation System, called FreeRTOS. This provides the framework for orderly handling of the data collection and the various tasks that are undertaken by the microcontroller.
+    * The software components for the various devices used by the ECG monitor - the drivers for the ADC chips, the RTC board, the MicroSD adapter.
+    * The cardiac data analysis will need to handle QRS detection, which gives the basic heart rate data. The data analysis component may also be expanded to include more features which can be very useful for monitoring patient health.
 
-(See the README.md file in the upper level 'examples' directory for more information about examples.)
+# Processing flow for ECG signal capture, processing, and storage
+![ECGMonitor](images/ECG-capture-n-proc.png)
+* This represents the flow for the ECG signal process.
+    * On the far left, there is a ADC Capture component that stores the captured signal into a Packet buffer.
+    * When the maximum for the packet size is reached, the ECG Process Task is called.
+    * This in turn encompasses QRS Detection, which will be handled by the Pan-Tompkins algorithm, which result in the primary metrics, the QRS duration and the R-R interval.
+    * Following that, an ST-segment analyzer is called.
+    * There may be one or more algorthms called after that (TBD)
+    * The recording of the data follows, with a call to generate a timestamp for the packet trace
+    * The data is written to the MicroSD card.
+    * Optionally, a LCD screen if present and configured can be updated with the new data as well.
 
-## How to use example
-
-Follow detailed instructions provided specifically for this example.
-
-Select the instructions depending on Espressif chip installed on your development board:
-
-- [ESP32 Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/stable/get-started/index.html)
-- [ESP32-S2 Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/get-started/index.html)
 
 
-## Example folder contents
-
-The project **hello_world** contains one source file in C language [hello_world_main.c](main/hello_world_main.c). The file is located in folder [main](main).
-
-ESP-IDF projects are built using CMake. The project build configuration is contained in `CMakeLists.txt` files that provide set of directives and instructions describing the project's source files and targets (executable, library, or both).
-
-Below is short explanation of remaining files in the project folder.
-
-```
-├── CMakeLists.txt
-├── pytest_hello_world.py      Python script used for automated testing
-├── main
-│   ├── CMakeLists.txt
-│   └── hello_world_main.c
-└── README.md                  This is the file you are currently reading
-```
-
-For more information on structure and contents of ESP-IDF projects, please refer to Section [Build System](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html) of the ESP-IDF Programming Guide.
-
-## Troubleshooting
-
-* Program upload failure
-
-    * Hardware connection is not correct: run `idf.py -p PORT monitor`, and reboot your board to see if there are any output logs.
-    * The baud rate for downloading is too high: lower your baud rate in the `menuconfig` menu, and try again.
-
-## Technical support and feedback
-
-Please use the following feedback channels:
-
-* For technical queries, go to the [esp32.com](https://esp32.com/) forum
-* For a feature request or bug report, create a [GitHub issue](https://github.com/espressif/esp-idf/issues)
-
-We will get back to you as soon as possible.

@@ -1,0 +1,202 @@
+/*
+ * ESP32-S3 Data Logger Project
+ * Hardware Configuration:
+ * - SDMMC: 4-bit mode (CLK=39, CMD=40, D0=41, D1=42, D2=1, D3=2)
+ * - I2C: DS3231 RTC and ADS1115 ADC (SDA=4, SCL=5)
+ * - ADS1115 Configuration: 860 SPS, Continuous Conversion
+ *
+ * This file is generated for use with the VS Code ESP-IDF Extension.
+ * This is for informational purposes only. AI responses may include mistakes.
+ */
+
+#include <stdio.h>
+#include <string.h>
+#include <sys/unistd.h>
+#include <sys/stat.h>
+#include "esp_log.h"
+#include "esp_err.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/queue.h"
+#include "driver/i2c.h"
+#include "driver/sdmmc_host.h"
+#include "sdmmc_cmd.h"
+#include "esp_vfs_fat.h"
+
+static const char *TAG = "MAIN_APP";
+
+#define I2C_MASTER_SDA_IO           4
+#define I2C_MASTER_SCL_IO           5
+#define I2C_MASTER_NUM              I2C_NUM_0
+#define I2C_MASTER_FREQ_HZ          400000
+#define I2C_MASTER_TX_BUF_DISABLE   0
+#define I2C_MASTER_RX_BUF_DISABLE   0
+
+#define ADS1115_I2C_ADDR            0x48
+#define DS3231_I2C_ADDR             0x68
+
+#define SDMMC_PIN_CLK               39
+#define SDMMC_PIN_CMD               40
+#define SDMMC_PIN_D0                41
+#define SDMMC_PIN_D1                42
+#define SDMMC_PIN_D2                1
+#define SDMMC_PIN_D3                2
+
+// Structure to pass channel configurations sequentially
+typedef struct {
+    uint16_t config_val;
+    uint8_t channel_index;
+} adc_channel_conf_t;
+
+// Queue to hold values to log to SD card
+static QueueHandle_t data_logger_queue = NULL;
+
+typedef struct {
+    int16_t ch0;
+    int16_t ch1;
+    int16_t ch2;
+    int16_t ch3;
+} adc_data_batch_t;
+
+// Initialize I2C Peripheral
+static esp_err_t i2c_master_init(void) {
+    i2c_config_t conf = {
+        .mode = I2C_MODE_MASTER,
+        .sda_io_num = I2C_MASTER_SDA_IO,
+        .sda_pullup_en = GPIO_PULLUP_DISABLE, // External pull-ups assumed
+        .scl_io_num = I2C_MASTER_SCL_IO,
+        .scl_pullup_en = GPIO_PULLUP_DISABLE,
+        .master.clk_speed = I2C_MASTER_FREQ_HZ,
+    };
+    esp_err_t err = i2c_param_config(I2C_MASTER_NUM, &conf);
+    if (err != ESP_OK) return err;
+    return i2c_driver_install(I2C_MASTER_NUM, conf.mode, I2C_MASTER_TX_BUF_DISABLE, I2C_MASTER_RX_BUF_DISABLE, 0);
+}
+
+// Write to a 16-bit register on ADS1115
+static esp_err_t ads1115_write_reg(uint8_t reg, uint16_t value) {
+    uint8_t write_buf[3];
+    write_buf[0] = reg;
+    write_buf[1] = (value >> 8) & 0xFF;
+    write_buf[2] = value & 0xFF;
+    return i2c_master_write_to_device(I2C_MASTER_NUM, ADS1115_I2C_ADDR, write_buf, sizeof(write_buf), pdMS_TO_TICKS(100));
+}
+
+// Read from a 16-bit register from ADS1115
+static esp_err_t ads1115_read_reg(uint8_t reg, uint16_t *value) {
+    uint8_t data[2];
+    esp_err_t err = i2c_master_write_read_device(I2C_MASTER_NUM, ADS1115_I2C_ADDR, &reg, 1, data, 2, pdMS_TO_TICKS(100));
+    if (err == ESP_OK) {
+        *value = (data[0] << 8) | data[1];
+    }
+    return err;
+}
+
+// Initialize SDMMC 4-bit Mode
+static esp_err_t init_sd_card(void) {
+    ESP_LOGI(TAG, "Initializing SD card in 4-bit SDMMC mode");
+
+    esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+        .format_if_mount_failed = true,
+        .max_files = 5,
+        .allocation_unit_size = 16 * 1024
+    };
+
+    sdmmc_card_t *card;
+    sdmmc_host_t host = SDMMC_HOST_DEFAULT();
+    
+    // S3 requires explicit slot configuration mapping via GPIO matrix
+    sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
+    slot_config.width = 4;
+    slot_config.clk = SDMMC_PIN_CLK;
+    slot_config.cmd = SDMMC_PIN_CMD;
+    slot_config.d0 = SDMMC_PIN_D0;
+    slot_config.d1 = SDMMC_PIN_D1;
+    slot_config.d2 = SDMMC_PIN_D2;
+    slot_config.d3 = SDMMC_PIN_D3;
+    slot_config.flags |= SDMMC_SLOT_FLAG_INTERNAL_PULLUP;
+
+    esp_err_t ret = esp_vfs_fat_sdmmc_mount("/sdcard", &host, &slot_config, &mount_config, &card);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to mount filesystem. Error: %s", esp_err_to_name(ret));
+        return ret;
+    }
+    ESP_LOGI(TAG, "SD Card mounted successfully.");
+    return ESP_OK;
+}
+
+// Data Logger Writing Task
+void sd_logger_task(void *pvParameters) {
+    adc_data_batch_t log_item;
+    while(1) {
+        if (xQueueReceive(data_logger_queue, &log_item, portMAX_DELAY) == pdTRUE) {
+            FILE *f = fopen("/sdcard/adc_log.csv", "a");
+            if (f == NULL) {
+                ESP_LOGE(TAG, "Failed to open file for writing");
+                continue;
+            }
+            // Append batch readings to file
+            fprintf(f, "%d,%d,%d,%d\n", log_item.ch0, log_item.ch1, log_item.ch2, log_item.ch3);
+            fclose(f);
+        }
+    }
+}
+
+// Rapid Multi-Channel Polling Task
+void ads1115_collect_task(void *pvParameters) {
+    uint16_t val;
+    adc_data_batch_t current_batch;
+
+    /* 
+     * ADS1115 Register Settings for Max Data Rate 860 SPS:
+     * Bits[14:12] Multiplexer Select
+     * Bits[11:9] Programmable Gain (e.g., 010 for +/-2.048V)
+     * Bit[8] Operational Mode (0 for Continuous Conversion)
+     * Bits[7:5] Data Rate (111 for 860 SPS)
+     */
+    
+    // Fast channel config templates
+    uint16_t ch_configs[4] = {
+        0x44E0, // CH0 vs GND, 860 SPS, Continuous
+        0x54E0, // CH1 vs GND, 860 SPS, Continuous
+        0x64E0, // CH2 vs GND, 860 SPS, Continuous
+        0x74E0  // CH3 vs GND, 860 SPS, Continuous
+    };
+
+    while (1) {
+        // Fast sequence scanning across all 4 channels
+        for (int i = 0; i < 4; i++) {
+            ads1115_write_reg(1, ch_configs[i]); // Update MUX to current channel
+            
+            // Wait for continuous cycle transition (at 860 SPS, ~1.16ms per sample)
+            vTaskDelay(pdMS_TO_TICKS(2)); 
+            
+            if (ads1115_read_reg(0, &val) == ESP_OK) {
+                int16_t conversion_result = (int16_t)val;
+                if (i == 0) current_batch.ch0 = conversion_result;
+                if (i == 1) current_batch.ch1 = conversion_result;
+                if (i == 2) current_batch.ch2 = conversion_result;
+                if (i == 3) current_batch.ch3 = conversion_result;
+            }
+        }
+        
+        // Push batch results asynchronously to background logger task
+        xQueueSend(data_logger_queue, &current_batch, 0);
+        
+        // Short pause between sequential loop sweeps if needed
+        vTaskDelay(pdMS_TO_TICKS(5));
+    }
+}
+
+void app_main(void) {
+    // 1. Initialize System Peripherals
+    ESP_ERROR_CHECK(i2c_master_init());
+    ESP_ERROR_CHECK(init_sd_card());
+
+    // 2. Setup RTOS Components
+    data_logger_queue = xQueueCreate(20, sizeof(adc_data_batch_t));
+    
+    // 3. Launch Concurrently Executing Tasks
+    xTaskCreatePinnedToCore(sd_logger_task, "SD_Logger", 4096, NULL, 2, NULL, 1);
+    xTaskCreatePinnedToCore(ads1115_collect_task, "ADS_Collect", 3072, NULL, 5, NULL, 0);
+}

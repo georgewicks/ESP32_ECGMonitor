@@ -1,0 +1,41 @@
+// Mask changes: Bit 8 is set to 1 for Single-Shot conversion mode
+static const uint16_t ads_mux_config[4] = {
+    0xC4E8, // Channel 0, Single-Shot, 860 SPS, Alert Active Low
+    0xD4E8, // Channel 1, Single-Shot, 860 SPS, Alert Active Low
+    0xE4E8, // Channel 2, Single-Shot, 860 SPS, Alert Active Low
+    0xF4E8  // Channel 3, Single-Shot, 860 SPS, Alert Active Low
+};
+
+void adc_acquisition_task(void *pvParameters) {
+    uint8_t tracking_channel = 0;
+    adc_sample_t current_batch = {0};
+    uint16_t raw_reading = 0;
+
+    // Trigger the very first single-shot conversion on Channel 0
+    ads1115_write_reg(ADS1115_CFG_REG, ads_mux_config[tracking_channel]);
+
+    while (1) {
+        // Wait for the ALERT pin interrupt semaphore
+        if (xSemaphoreTake(ads_rdy_semaphore, portMAX_DELAY) == pdTRUE) {
+            
+            // Read conversion register (Guaranteed to be tracking_channel data 
+            // in Single-Shot mode)
+            if (ads1115_read_reg(ADS1115_CONV_REG, &raw_reading) == ESP_OK) {
+                current_batch.channels[tracking_channel] = (int16_t)raw_reading;
+            }
+
+            // Move state machine tracking to the next channel index
+            uint8_t next_channel = (tracking_channel + 1) % 4;
+
+            if (tracking_channel == 3) {
+                current_batch.timestamp = xTaskGetTickCount() * portTICK_PERIOD_MS;
+                xQueueSend(adc_queue, &current_batch, 0);
+            }
+
+            tracking_channel = next_channel;
+
+            // Trigger the next single-shot conversion immediately
+            ads1115_write_reg(ADS1115_CFG_REG, ads_mux_config[tracking_channel]);
+        }
+    }
+}
