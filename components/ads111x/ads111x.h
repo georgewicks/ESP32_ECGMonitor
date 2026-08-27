@@ -45,14 +45,18 @@
 #ifndef __ADS111X_H__
 #define __ADS111X_H__
 
+#include <stdint.h>
 #include <stdbool.h>
-#include <esp_err.h>
 #ifdef  USE_PURE_UNCLE_RUS
 #include <i2cdev.h>
 #else
+#include "spoof_i2cdev.h"
+#endif
+
+/*
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include <esp_log.h>
+#include <esp_err.h>
 #include "esp_system.h"
 #include "esp_log.h"
 
@@ -61,24 +65,26 @@
 #else
 #include "driver/i2c_master.h"
 #endif
-// Substitute the i2c_dev_t struct - we're only going to need port & addr for our purposes
-//typedef uint8_t     i2c_port_t;
+*/
+
+/*
 typedef struct
 {
     i2c_port_t                  port;                 //!< I2C port number (e.g., I2C_NUM_0)
     uint16_t                    addr;                   //!< Device I2C address (e.g., 0x48 for 7-bit)
     i2c_master_dev_handle_t     devhandle;
 } i2c_dev_t;
-#endif
+ */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+// ADS111x address defines
 #define ADS111X_ADDR_GND 0x48 //!< I2C device address with ADDR pin connected to ground
 #define ADS111X_ADDR_VCC 0x49 //!< I2C device address with ADDR pin connected to VCC
 #define ADS111X_ADDR_SDA 0x4a //!< I2C device address with ADDR pin connected to SDA
 #define ADS111X_ADDR_SCL 0x4b //!< I2C device address with ADDR pin connected to SCL
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define ADS111X_MAX_VALUE 0x7fff //!< Maximum ADC value
 #define ADS101X_MAX_VALUE 0x7ff

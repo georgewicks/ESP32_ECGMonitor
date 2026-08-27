@@ -9,13 +9,35 @@
 #include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/semphr.h"
 #include "esp_chip_info.h"
 #include "esp_flash.h"
 #include "esp_system.h"
 
-void app_main(void)
+#include <esp_log.h>
+
+
+#include "spoof_i2cdev.h"
+
+#include "common.h"
+
+static const char *TAG = "main";
+
+// if we decide to use HTTP, we might need to use this to avoid I2C timeouts
+SemaphoreHandle_t	xMutex;
+
+i2c_master_bus_handle_t bus_handle;
+i2c_master_dev_handle_t dev_handle;
+
+extern void     i2c_master_init(void);
+extern void     InitI2C(void);
+extern bool     IsADS1115Present(void);
+extern bool     IsDS3231Present(void);
+
+static void     do_chip_info(void)
 {
-    printf("Hello world!\n");
+
+    ESP_LOGI(TAG, "%s started", __func__);
 
     /* Print chip information */
     esp_chip_info_t chip_info;
@@ -42,11 +64,55 @@ void app_main(void)
 
     printf("Minimum free heap size: %" PRIu32 " bytes\n", esp_get_minimum_free_heap_size());
 
-    for (int i = 10; i >= 0; i--) {
+}
+
+static void     do_restart(void)
+{
+    ESP_LOGI(TAG, "%s: called", __func__);
+
+    for (int i = 100; i >= 0; i--) {
         printf("Restarting in %d seconds...\n", i);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
     printf("Restarting now.\n");
     fflush(stdout);
     esp_restart();
+
+}
+
+void app_main(void)
+{
+    ESP_LOGI(TAG, "%s: starting", __func__);
+
+    do_chip_info();
+    xMutex = xSemaphoreCreateMutex();
+    if(xMutex == NULL)
+    {
+        ESP_LOGE(TAG, "xSemaphoreCreateMutex = NULL returned!");
+        do_restart();
+    }
+
+    InitI2C();
+
+    // check for device presence, and do the necessary installation.
+    if(IsADS1115Present())
+    {
+        ESP_LOGI(TAG, "ADS1115 found - do the initialization");
+    }
+    else
+    {
+        ESP_LOGI(TAG, "ADS1115 not found! Cannot acquire ECG signal data!");
+    }
+    
+    if(IsDS3231Present())
+    {
+        ESP_LOGI(TAG, "DS3231 found - do the initialization");
+    }
+    else
+    {
+        ESP_LOGI(TAG, "DS3231 not found! - RTC needed for timestamping!");
+    }
+    
+    do_restart();
+    
 }

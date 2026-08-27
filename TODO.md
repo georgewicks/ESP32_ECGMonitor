@@ -42,3 +42,7 @@
 * build circuit for interfacing the TP4056 (?) charger to the LIPO battery, battery supply to the DC convertor MT3608 (see p.7 of first circuit design document in docs folder). THIS is for Proof-of-concept - this may change,
 * build 4-bit SDMCC mode wiring circuit between the MicroSD adapter board and the ESP32S3 super mini board. See page 7 of above mentioned document.
 * There are several SW design pieces in the AI queried documents - need to outline them, and describe sequence of actions for implementation.
+
+# 2026-08-25
+* I just restarted the project as ESP32-ECGMonitor, partly to emphasize that this targets the ESP32 family, and also to sever development ties to Windows development, and just make it Linux (Ubuntu in specific).
+* Using the hello_world example because it would be good to let the user know the chip info.

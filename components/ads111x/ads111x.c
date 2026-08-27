@@ -90,7 +90,7 @@ const float ads111x_gain_values[] = {
     [ADS111X_GAIN_0V256_3] = 0.256
 };
 
-static esp_err_t read_reg(i2c_dev_t *dev, uint8_t reg, uint16_t *val)
+static esp_err_t read_reg( i2c_dev_t *dev, uint8_t reg, uint16_t *val)
 {
     uint8_t buf[2];
     esp_err_t res;

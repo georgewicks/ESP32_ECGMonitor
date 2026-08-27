@@ -41,20 +41,21 @@
 #ifndef __DS3231_H__
 #define __DS3231_H__
 
-#include <stdio.h>
 #include <time.h>
 #include <stdbool.h>
-#include <string.h>
-#include "esp_log.h"
-
-#ifdef	__cplusplus
-extern "C" {
+#ifdef  USE_PURE_UNCLE_RUS
+#include <i2cdev.h>
+#else
+#include "spoof_i2cdev.h"
 #endif
+#include <esp_err.h>
 
-#include <esp_log.h>
-#include "esp_system.h"
+/*
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#include <esp_err.h>
+#include "esp_system.h"
+#include "esp_log.h"
 
 #ifdef  LEGACY_I2C
 #include "driver/i2c.h"
@@ -62,18 +63,13 @@ extern "C" {
 #include "driver/i2c_master.h"
 #endif
 
-
-// Substitute the i2c_dev_t struct - we're only going to need port & addr for our purposes
-//typedef uint8_t     i2c_port_t;
-typedef struct
-{
-    i2c_port_t                  port;                 //!< I2C port number (e.g., I2C_NUM_0)
-    uint16_t                    addr;                   //!< Device I2C address (e.g., 0x48 for 7-bit)
-    i2c_master_dev_handle_t     devhandle;
-} i2c_dev_t;
-
+*/
 
 #define DS3231_ADDR 0x68 //!< I2C address
+
+#ifdef	__cplusplus
+extern "C" {
+#endif
 
 /**
  * Alarms

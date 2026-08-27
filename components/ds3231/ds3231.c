@@ -36,8 +36,8 @@
  *
  * MIT Licensed as described in the file LICENSE
  */
-#include <stdio.h>
-#include <esp_err.h>
+
+#include <esp_log.h>
 #ifdef  USE_PURE_UNCLE_RUS
 #include <esp_idf_lib_helpers.h>
 #endif
