@@ -14,6 +14,11 @@
 #include "esp_flash.h"
 #include "esp_system.h"
 
+// AI suggested additions
+#include "esp_timer.h"
+#include "esp_vfs_fat.h"
+#include "sdmmc_cmd.h"
+
 #include <esp_log.h>
 
 
@@ -23,16 +28,33 @@
 
 static const char *TAG = "main";
 
+extern void     i2c_master_init(void);
+extern void     InitI2C(void);
+extern bool     IsADS1115Present(void);
+extern bool     IsDS3231Present(void);
+
 // if we decide to use HTTP, we might need to use this to avoid I2C timeouts
 SemaphoreHandle_t	xMutex;
 
 i2c_master_bus_handle_t bus_handle;
 i2c_master_dev_handle_t dev_handle;
 
-extern void     i2c_master_init(void);
-extern void     InitI2C(void);
-extern bool     IsADS1115Present(void);
-extern bool     IsDS3231Present(void);
+typedef struct {
+    uint64_t micro_timestamp; // Microsecond accuracy for ECG spacing
+    int16_t channels[4];
+} adc_sample_t;
+
+typedef struct {
+    uint8_t second;
+    uint8_t minute;
+    uint8_t hour;
+} rtc_time_t;
+
+/**
+ * @brief ADC related items, AI suggested
+ * 
+ */
+
 
 static void     do_chip_info(void)
 {
@@ -66,6 +88,30 @@ static void     do_chip_info(void)
 
 }
 
+extern esp_err_t	InitADS1115(void);
+
+static void FindAndInitDevices(void) 
+{
+    if(IsADS1115Present())
+    {
+        ESP_LOGI(TAG, "ADS1115 found - do the initialization");
+        InitADS1115();
+    }
+    else
+    {
+        ESP_LOGI(TAG, "ADS1115 not found! Cannot acquire ECG signal data!");
+    }
+    
+    if(IsDS3231Present())
+    {
+        ESP_LOGI(TAG, "DS3231 found - do the initialization");
+    }
+    else
+    {
+        ESP_LOGI(TAG, "DS3231 not found! - RTC needed for timestamping!");
+    }
+}
+
 static void     do_restart(void)
 {
     ESP_LOGI(TAG, "%s: called", __func__);
@@ -95,24 +141,9 @@ void app_main(void)
     InitI2C();
 
     // check for device presence, and do the necessary installation.
-    if(IsADS1115Present())
-    {
-        ESP_LOGI(TAG, "ADS1115 found - do the initialization");
-    }
-    else
-    {
-        ESP_LOGI(TAG, "ADS1115 not found! Cannot acquire ECG signal data!");
-    }
-    
-    if(IsDS3231Present())
-    {
-        ESP_LOGI(TAG, "DS3231 found - do the initialization");
-    }
-    else
-    {
-        ESP_LOGI(TAG, "DS3231 not found! - RTC needed for timestamping!");
-    }
-    
+    FindAndInitDevices();
+
+
     do_restart();
     
 }

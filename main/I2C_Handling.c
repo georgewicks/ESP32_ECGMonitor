@@ -153,7 +153,7 @@ static void i2c_scanner_task(void *pvParameters) {
 					if (ret == ESP_OK)
 					{
 						if(IsScanOutput) printf("%02x ", address);
-                        i2c_device_list[i] = true;
+                        i2c_device_list[address] = true;
 						device_count++;
 					}
 					else
@@ -161,7 +161,7 @@ static void i2c_scanner_task(void *pvParameters) {
                         if(ret == ESP_ERR_TIMEOUT)
                             printf("HW Err ");
 						if(IsScanOutput) printf("-- ");
-                        i2c_device_list[i] = false;
+                        i2c_device_list[address] = false;
 					}
 
 
@@ -191,4 +191,18 @@ void    InitI2C(void)
     xTaskCreate(i2c_scanner_task, "i2c_scanner", 4096, NULL, 5, NULL);
 
     vTaskDelay(1000 / portTICK_PERIOD_MS);
+}
+
+/**
+ * @brief Basic API for device initiation.
+ * 
+ */
+
+i2c_dev_t	ECGDev_ads1115;
+
+esp_err_t	InitADS1115(void)
+{
+	esp_err_t   retv = ads111x_init_desc( &ECGDev_ads1115, dev_handle, ADS111X_ADDR_GND, I2C_NUM, 0, 0);
+	ESP_LOGI(TAG, "ads111x_init_desc = %d(%s)", retv, esp_err_to_name(retv));
+	return retv;
 }

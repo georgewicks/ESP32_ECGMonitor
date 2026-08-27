@@ -46,3 +46,10 @@
 # 2026-08-25
 * I just restarted the project as ESP32-ECGMonitor, partly to emphasize that this targets the ESP32 family, and also to sever development ties to Windows development, and just make it Linux (Ubuntu in specific).
 * Using the hello_world example because it would be good to let the user know the chip info.
+
+# 2026-08-26
+* found that there are 2 different pinouts for the ESP32S3-supermini - very tedious debug, before I realized that the diagram was using was the wrong one. Must remember to always check the VCC (3.3v) output pin everytime when using a new chip - don't rely on the USB power up - check the power pinouts, because then you can confirm I2C (since you need pull-up resistors for the SDA and SCL pins).
+* Got the basic foundation for the current ECG monitor setup. Basic chip info, I2C initialization.
+* Start the implementation of the AI suggested code. It does make sense. (See docs/AI-assisted-circuit-and-SW-design/CodeSnapshotsFromAI)
+
+
