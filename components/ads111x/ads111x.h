@@ -76,6 +76,13 @@ typedef struct
 } i2c_dev_t;
  */
 
+// Register defines 
+#define REG_CONVERSION 0
+#define REG_CONFIG     1
+#define REG_THRESH_L   2
+#define REG_THRESH_H   3
+
+
 // ADS111x address defines
 #define ADS111X_ADDR_GND 0x48 //!< I2C device address with ADDR pin connected to ground
 #define ADS111X_ADDR_VCC 0x49 //!< I2C device address with ADDR pin connected to VCC
@@ -215,6 +222,12 @@ esp_err_t ads111x_init_desc(i2c_dev_t *dev, i2c_master_dev_handle_t devhandle,ui
  * @return `ESP_OK` on success
  */
 esp_err_t ads111x_free_desc(i2c_dev_t *dev);
+
+// NOTE: Since we want ADS111x access to be as fast as possible, I will make the bulk 16-bit
+// read & write functions globally accessible for the ADC operations. 
+esp_err_t ads111x_read_reg( i2c_dev_t *dev, uint8_t reg, uint16_t *val);
+esp_err_t ads111x_write_reg(i2c_dev_t *dev, uint8_t reg, uint16_t val);
+
 
 /**
  * @brief Get device operational status

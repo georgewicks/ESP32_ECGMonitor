@@ -49,12 +49,6 @@
 
 // TODO: Re-check This!!!! we do need 200 Hz samples per channel! 
 #define I2C_FREQ_HZ 1000000 // Max 1MHz for esp32
-
-#define REG_CONVERSION 0
-#define REG_CONFIG     1
-#define REG_THRESH_L   2
-#define REG_THRESH_H   3
-
 #define COMP_QUE_OFFSET  0
 #define COMP_QUE_MASK    0x03
 #define COMP_LAT_OFFSET  2
@@ -90,15 +84,22 @@ const float ads111x_gain_values[] = {
     [ADS111X_GAIN_0V256_3] = 0.256
 };
 
+// NOTE: Since we want ADS111x access to be as fast as possible, I will make these globally accessible
+// for the ADC operations. 
+
+#ifdef  USE_PURE_UNCLE_RUS
 static esp_err_t read_reg( i2c_dev_t *dev, uint8_t reg, uint16_t *val)
+#else
+esp_err_t ads111x_read_reg( i2c_dev_t *dev, uint8_t reg, uint16_t *val)
+#endif
 {
     uint8_t buf[2];
     esp_err_t res;
 
-    ESP_LOGI(TAG, "read_reg");
+    ESP_LOGI(TAG, "ads111x_read_reg");
 
 #ifdef  USE_PURE_UNCLE_RUS
-    if ((res = i2c_dev_read_reg(dev, reg, buf, 2)) != ESP_OK)
+    if ((res = read_reg(dev, reg, buf, 2)) != ESP_OK)
 #else
     uint8_t     write_buf[2];
     write_buf[0] = reg;
@@ -114,12 +115,16 @@ static esp_err_t read_reg( i2c_dev_t *dev, uint8_t reg, uint16_t *val)
     return ESP_OK;
 }
 
+#ifdef  USE_PURE_UNCLE_RUS
 static esp_err_t write_reg(i2c_dev_t *dev, uint8_t reg, uint16_t val)
+#else
+esp_err_t ads111x_write_reg(i2c_dev_t *dev, uint8_t reg, uint16_t val)
+#endif
 {
     uint8_t buf[2] = { val >> 8, val };
     esp_err_t res;
 
-    ESP_LOGI(TAG, "read_reg");
+    ESP_LOGI(TAG, "ads111x_write_reg");
 
 #ifdef  USE_PURE_UNCLE_RUS
     if ((res = i2c_dev_write_reg(dev, reg, buf, 2)) != ESP_OK)
@@ -148,10 +153,10 @@ static esp_err_t read_conf_bits(i2c_dev_t *dev, uint8_t offs, uint16_t mask,
     I2C_DEV_GIVE_MUTEX(dev);
 #else
     esp_err_t   retv;
-    retv = read_reg(dev, REG_CONFIG, &val);
+    retv = ads111x_read_reg(dev, REG_CONFIG, &val);
     if( retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from read_reg = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, " err from ads111x_read_reg = %d(%s)", retv, esp_err_to_name(retv));
     }
 #endif
     ESP_LOGD(TAG, "Got config value: 0x%04x", val);
@@ -178,18 +183,18 @@ static esp_err_t write_conf_bits(i2c_dev_t *dev, uint16_t val, uint8_t offs,
     I2C_DEV_GIVE_MUTEX(dev);
 #else
     esp_err_t   retv;
-    retv = read_reg(dev, REG_CONFIG, &old);
+    retv = ads111x_read_reg(dev, REG_CONFIG, &old);
     if(retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from write_reg = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, " err from ads111x_read_reg = %d(%s)", retv, esp_err_to_name(retv));
     }
     // Issue #593
     if (offs != OS_OFFSET || mask != OS_MASK)
         old &= ~(OS_MASK << OS_OFFSET);
-    retv = write_reg(dev, REG_CONFIG, (old & ~(mask << offs)) | (val << offs));
+    retv = ads111x_write_reg(dev, REG_CONFIG, (old & ~(mask << offs)) | (val << offs));
     if(retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from write_reg = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, " err from ads111x_write_reg = %d(%s)", retv, esp_err_to_name(retv));
     }
 #endif
     return ESP_OK;
@@ -274,7 +279,7 @@ esp_err_t ads111x_get_value(i2c_dev_t *dev, int16_t *value)
     I2C_DEV_GIVE_MUTEX(dev);
 #else
     esp_err_t   retv;
-    retv = read_reg(dev, REG_CONVERSION, (uint16_t *)value);
+    retv = ads111x_read_reg(dev, REG_CONVERSION, (uint16_t *)value);
     if(retv != ESP_OK)
     {
         ESP_LOGE(TAG, " err from read_reg = %d(%s)", retv, esp_err_to_name(retv));
@@ -294,7 +299,7 @@ esp_err_t ads101x_get_value(i2c_dev_t *dev, int16_t *value)
     I2C_DEV_GIVE_MUTEX(dev);
 #else
     esp_err_t   retv;
-    retv = read_reg(dev, REG_CONVERSION, (uint16_t *)value);
+    retv = ads111x_read_reg(dev, REG_CONVERSION, (uint16_t *)value);
     if(retv != ESP_OK)
     {
         ESP_LOGE(TAG, " err from read_reg = %d(%s)", retv, esp_err_to_name(retv));
@@ -399,10 +404,10 @@ esp_err_t ads111x_get_comp_low_thresh(i2c_dev_t *dev, int16_t *th)
     I2C_DEV_GIVE_MUTEX(dev);
 #else
     esp_err_t   retv;
-    retv = read_reg(dev, REG_THRESH_L, (uint16_t *)th);
+    retv = ads111x_read_reg(dev, REG_THRESH_L, (uint16_t *)th);
     if(retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from read_reg = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, " err from ads111x_read_reg = %d(%s)", retv, esp_err_to_name(retv));
     }
 #endif
     return ESP_OK;
@@ -417,10 +422,10 @@ esp_err_t ads111x_set_comp_low_thresh(i2c_dev_t *dev, int16_t th)
     I2C_DEV_GIVE_MUTEX(dev);
 #else
     esp_err_t   retv;
-    retv = write_reg(dev, REG_THRESH_L, (uint16_t )th);
+    retv = ads111x_write_reg(dev, REG_THRESH_L, (uint16_t )th);
     if(retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from write_reg = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, " err from ads111x_write_reg = %d(%s)", retv, esp_err_to_name(retv));
     }
 #endif
 
@@ -436,10 +441,10 @@ esp_err_t ads111x_get_comp_high_thresh(i2c_dev_t *dev, int16_t *th)
     I2C_DEV_GIVE_MUTEX(dev);
 #else
     esp_err_t   retv;
-    retv = read_reg(dev, REG_THRESH_L, (uint16_t *)th);
+    retv = ads111x_read_reg(dev, REG_THRESH_L, (uint16_t *)th);
     if(retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from read_reg = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, " err from ads111x_read_reg = %d(%s)", retv, esp_err_to_name(retv));
     }
 #endif
 
@@ -455,10 +460,10 @@ esp_err_t ads111x_set_comp_high_thresh(i2c_dev_t *dev, int16_t th)
     I2C_DEV_GIVE_MUTEX(dev);
 #else
     esp_err_t   retv;
-    retv = write_reg(dev, REG_THRESH_H, (uint16_t)th);
+    retv = ads111x_write_reg(dev, REG_THRESH_H, (uint16_t)th);
     if(retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from write_reg = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, " err from ads111x_write_reg = %d(%s)", retv, esp_err_to_name(retv));
     }
 #endif
 
