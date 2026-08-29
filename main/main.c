@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <inttypes.h>
+#include <time.h>
 #include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -47,6 +48,8 @@ extern esp_err_t ads111x_write_reg(i2c_dev_t *dev, uint8_t reg, uint16_t val);
 
 extern i2c_dev_t	ECGDev_ads1115;
 extern esp_err_t	InitADS1115(void);
+extern i2c_dev_t    DS3231_dev;
+extern esp_err_t    InitDS3231(void);
 
 static QueueHandle_t adc_queue = NULL;
 static SemaphoreHandle_t ads_rdy_semaphore = NULL;
@@ -68,7 +71,8 @@ static const uint16_t ads_mux_config[4] = {
 };
 
 // Global wall clock shared safely via thread updates
-static volatile rtc_time_t global_wall_clock = {0};
+// static volatile rtc_time_t global_wall_clock = {0};
+static volatile struct tm  global_wall_clock = {0};
 
 static void     do_restart(void)
 {
@@ -131,6 +135,7 @@ static void FindAndInitDevices(void)
     if(IsDS3231Present())
     {
         ESP_LOGI(TAG, "DS3231 found - do the initialization");
+        InitDS3231();
     }
     else
     {
@@ -204,25 +209,48 @@ void adc_acquisition_task(void *pvParameters)
     }
 }
 
+#if 0
+// AI recommended DS3231 API calls
+static esp_err_t ds3231_read_time(rtc_time_t *time) {
+    uint8_t reg = DS3231_TIME_REG;
+    uint8_t data[3];
+    esp_err_t err = i2c_master_write_read_device(I2C_MASTER_NUM, DS3231_I2C_ADDR, &reg, 1, data, 3, pdMS_TO_TICKS(10));
+    if (err == ESP_OK) {
+        time->second = bcd_to_dec(data[0] & 0x7F);
+        time->minute = bcd_to_dec(data[1] & 0x7F);
+        time->hour   = bcd_to_dec(data[2] & 0x3F); // 24-hour mode assumption
+    }
+    return err;
+}
+#endif
+
 /**
  * @brief AI recommended functionality for handling the MicroSD file access.
  * 
  */
 // CORE 1: Low-Priority RTC Syncing & SD Card Storage 
 void sd_writer_task(void *pvParameters) {
-    adc_sample_t log_data;
-    TickType_t last_rtc_check = xTaskGetTickCount();
-    rtc_time_t local_clock_copy;
+    adc_sample_t    log_data;
+    TickType_t      last_rtc_check = xTaskGetTickCount();
+    // rtc_time_t      local_clock_copy;
+    struct tm       local_clock_copy;
+    esp_err_t       retv;
 
     // Seed the initial wall clock
-    ds3231_read_time(&local_clock_copy);
+    //ds3231_read_time(&local_clock_copy);
+    retv = ds3231_get_time( &DS3231_dev, &local_clock_copy);
     global_wall_clock = local_clock_copy;
 
     while (1) {
         // Safe RTC Polling: Only check the physical chip once every 1000ms
         if ((xTaskGetTickCount() - last_rtc_check) > pdMS_TO_TICKS(1000)) {
-            if (ds3231_read_time(&local_clock_copy) == ESP_OK) {
+            retv = ds3231_get_time(&DS3231_dev, &local_clock_copy);
+            if (retv == ESP_OK) {
                 global_wall_clock = local_clock_copy;
+            }
+            else
+            {
+                ESP_LOGE(TAG,"ds3232_get_time error = %d(%s)", retv, esp_err_to_name(retv));
             }
             last_rtc_check = xTaskGetTickCount();
         }
@@ -233,9 +261,9 @@ void sd_writer_task(void *pvParameters) {
             if (f != NULL) {
                 // Formats as: HH:MM:SS,Microseconds,Ch0,Ch1,Ch2,Ch3
                 fprintf(f, "%02d:%02d:%02d,%llu,%d,%d,%d,%d\n", 
-                        global_wall_clock.hour,
-                        global_wall_clock.minute,
-                        global_wall_clock.second,
+                        global_wall_clock.tm_hour,
+                        global_wall_clock.tm_min,
+                        global_wall_clock.tm_sec,
                         log_data.micro_timestamp,
                         log_data.channels[0], 
                         log_data.channels[1], 

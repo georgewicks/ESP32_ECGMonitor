@@ -106,6 +106,8 @@ void adc_acquisition_task(void *pvParameters) {
     }
 }
 
+struct tm   global_wall_clock;
+
 // CORE 1: Low-Priority RTC Syncing & SD Card Storage 
 void sd_writer_task(void *pvParameters) {
     adc_sample_t log_data;

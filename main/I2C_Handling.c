@@ -206,3 +206,21 @@ esp_err_t	InitADS1115(void)
 	ESP_LOGI(TAG, "ads111x_init_desc = %d(%s)", retv, esp_err_to_name(retv));
 	return retv;
 }
+
+i2c_dev_t   DS3231_dev;
+
+/**
+ * @brief Initialize the DS3231
+ * 
+ */
+esp_err_t   InitDS3231(void)
+{
+    esp_err_t  retv;
+    ESP_LOGI(TAG, "%s called", __func__);
+    retv = ds3231_init_desc( &DS3231_dev, dev_handle, I2C_NUM, 0, 0);
+    if(retv != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Error from ds3231_init_desc = %d(%s)", retv, esp_err_to_name(retv));
+    }
+	return retv;
+}
