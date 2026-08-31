@@ -52,4 +52,9 @@
 * Got the basic foundation for the current ECG monitor setup. Basic chip info, I2C initialization.
 * Start the implementation of the AI suggested code. It does make sense. (See docs/AI-assisted-circuit-and-SW-design/CodeSnapshotsFromAI)
 
+# 2026-08-30
+* Asked and received good review and debugging from ESP Docs AI Assistant. I was able to get the full path working from ADC capture to writing out the data to the MicroSD card
+
+# 2026-08-31
+* must optimise the ADC data stream for ECG analysis: need to expand the adc_sample_t structure so that 215 samples per channel for the ECG trace data.
 

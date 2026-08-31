@@ -204,6 +204,14 @@ esp_err_t	InitADS1115(void)
 {
 	esp_err_t   retv = ads111x_init_desc( &ECGDev_ads1115, dev_handle, ADS111X_ADDR_GND, I2C_NUM, 0, 0);
 	ESP_LOGI(TAG, "ads111x_init_desc = %d(%s)", retv, esp_err_to_name(retv));
+
+	// ESP Docs AI Assistant
+	// Add these after your existing ADS1115 init:
+	// Set Lo_thresh = 0x0000 and Hi_thresh = 0x8000
+	// This enables ALERT/RDY as conversion-ready output
+	ads111x_write_reg(&ECGDev_ads1115, REG_THRESH_L, 0x0000);
+	ads111x_write_reg(&ECGDev_ads1115, REG_THRESH_H, 0x8000);
+
 	return retv;
 }
 

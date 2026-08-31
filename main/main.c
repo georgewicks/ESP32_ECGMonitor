@@ -20,14 +20,14 @@
 #include "esp_vfs_fat.h"
 #include "sdmmc_cmd.h"
 
+#include "driver/spi_common.h"      // for SPI mode
+
 #include <esp_log.h>
 
-
 #include "spoof_i2cdev.h"
-
 #include "common.h"
-
 #include "ADCCapture.h"
+
 
 static const char *TAG = "main";
 
@@ -42,10 +42,8 @@ SemaphoreHandle_t	xMutex;
 i2c_master_bus_handle_t bus_handle;
 i2c_master_dev_handle_t dev_handle;
 
-
 extern esp_err_t ads111x_read_reg( i2c_dev_t *dev, uint8_t reg, uint16_t *val);
 extern esp_err_t ads111x_write_reg(i2c_dev_t *dev, uint8_t reg, uint16_t val);
-
 extern i2c_dev_t	ECGDev_ads1115;
 extern esp_err_t	InitADS1115(void);
 extern i2c_dev_t    DS3231_dev;
@@ -53,8 +51,6 @@ extern esp_err_t    InitDS3231(void);
 
 static QueueHandle_t adc_queue = NULL;
 static SemaphoreHandle_t ads_rdy_semaphore = NULL;
-
-
 
 // Exact configuration for the ADC:   Specify the channel (0-3), PGA = 010b, Single-shot (in conjunction with the ALRT pin, 
 // which triggers an interrupt), 860 SPS (DR field, 111b), ... TODO: better bit map description, and maybe setup bitmasks with shifts, etc. 
@@ -119,9 +115,146 @@ static void     do_chip_info(void)
 
 }
 
+#define MOUNT_POINT "/sdcard"
+
+// ******************************************************************
+// Re-using an older section of code that was written for handling SDMMC
+// ******************************************************************
+/* ------------------------------------------------------------------------- */
+/**
+ * @brief SDMMC handling
+ * 
+ */
+#ifdef  USE_SDMMC
+esp_vfs_fat_sdmmc_mount_config_t    mount_config = 
+{
+    .format_if_mount_failed = true, // Format card if it cannot be mounted
+    .max_files = 5,                 // Max open files at once
+    .allocation_unit_size = 16 * 1024
+};
+
+void    Init_sdmmc(void)
+{
+    sdmmc_card_t *card;
+    ESP_LOGI(TAG, "Initializing SD card via SDMMC peripheral...");
+
+    // 2. Setup host configuration (Defaults to 4-bit mode slot 1)
+    sdmmc_host_t host = SDMMC_HOST_DEFAULT();
+
+    // 3. Setup slot configuration 
+    sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
+    slot_config.width = 1; // Set to 1 for 1-bit mode (saves GPIO pins)
+    //slot_config.width = 4; // Set to 1 for 1-bit mode (saves GPIO pins)
+
+    // Optional: Enable internal pullups if hardware external resistors are missing
+    // slot_config.flags |= SDMMC_SLOT_FLAG_INTERNAL_PULLUP;
+
+    // 4. Mount the filesystem and initialize the driver
+    esp_err_t ret = esp_vfs_fat_sdmmc_mount(MOUNT_POINT, &host, &slot_config, 
+                               &mount_config, &card);
+
+    if (ret != ESP_OK) {
+        if (ret == ESP_FAIL) {
+            ESP_LOGE(TAG, "Failed to mount filesystem.");
+        } else {
+            ESP_LOGE(TAG, "Failed to initialize the card (%s).", esp_err_to_name(ret));
+        }
+        return;
+    }
+
+    // See SD/SDIO/MMC Driver pages in 
+    //    https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/storage/sdmmc.html
+    // Card initialized successfully, print information
+    sdmmc_card_print_info(stdout, card);
+}
+#endif
+// Re-using an older section of code that was written for handling SDMMC
+/**
+ * @brief For handling the MicroSD card adapter in SPI mode.
+ * 
+ */
+
+// Define GPIO mappings
+#define PIN_NUM_MISO 13
+#define PIN_NUM_MOSI 11
+#define PIN_NUM_CLK  12
+#define PIN_NUM_CS   10
+
+void    InitSD_SPI(void)
+{
+    esp_err_t ret;
+
+    ESP_LOGI(TAG, "%s: called", __func__);
+
+    // 1. Setup VFS and SD Card configuration
+    esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+        .format_if_mount_failed = false,
+        .max_files = 5,
+        .allocation_unit_size = 16 * 1024
+    };
+    sdmmc_card_t *card;
+
+    // 2. Initialize the SPI Bus
+    spi_bus_config_t bus_cfg = {
+        .mosi_io_num = PIN_NUM_MOSI,
+        .miso_io_num = PIN_NUM_MISO,
+        .sclk_io_num = PIN_NUM_CLK,
+        .quadwp_io_num = -1,
+        .quadhd_io_num = -1,
+        .max_transfer_sz = 4000,
+    };
+    
+    // Using SPI2_HOST (commonly mapped as FSPI)
+    ret = spi_bus_initialize(SPI2_HOST, &bus_cfg, SPI_DMA_CH_AUTO);
+    if (ret != ESP_OK) {
+        printf("Failed to initialize SPI bus.\n");
+        return;
+    }
+    // 3. Configure the slot device (SPI mode configuration)
+    sdmmc_host_t host = SDSPI_HOST_DEFAULT();
+    host.slot = SPI2_HOST; // Must match the initialized SPI host
+    ESP_LOGI(TAG, "%s:  spi_bus_initialize", __func__);
+
+    sdspi_device_config_t slot_config = SDSPI_DEVICE_CONFIG_DEFAULT();
+    slot_config.gpio_cs = PIN_NUM_CS;
+    slot_config.host_id = SPI2_HOST;
+
+    // 4. Mount the filesystem
+    printf("Mounting filesystem...\n");
+    ret = esp_vfs_fat_sdspi_mount(MOUNT_POINT, &host, &slot_config, &mount_config, &card);
+
+    if (ret != ESP_OK) {
+        if (ret == ESP_FAIL) {
+            printf("Failed to mount filesystem. If card is unformatted, set format_if_mount_failed.\n");
+        } else {
+            printf("Failed to initialize the card (%s). Check wiring.\n", esp_err_to_name(ret));
+        }
+        return;
+    }
+
+    // Card is successfully mounted. Read/write via standard POSIX functions
+    printf("Filesystem mounted. Card info: Name: %s\n", card->cid.name);
+    
+    // Example Write
+    FILE *f = fopen(MOUNT_POINT "/log.txt", "w");
+    if (f == NULL) {
+        printf("Failed to open file for writing\n");
+        return;
+    }
+    fprintf(f, "Hello from ESP32-S3! Data logged successfully.\n");
+    fclose(f);
+    
+    printf("File written successfully.\n");
+}
+
+
+
+// ******************************************************************
+
 // Our device look-up - post I2C bus scan
 static void FindAndInitDevices(void) 
 {
+    ESP_LOGI(TAG, "%s: called", __func__);
     if(IsADS1115Present())
     {
         ESP_LOGI(TAG, "ADS1115 found - do the initialization");
@@ -164,6 +297,8 @@ static void IRAM_ATTR ads_gpio_isr_handler(void* arg) {
     }
 }
 
+volatile  uint32_t  adc_signal_count = 0;
+
 // This is the AI recommendation: some slight changes in order to implement the code here.
 // CORE 0: High-Priority ECG Acquisition
 void adc_acquisition_task(void *pvParameters) 
@@ -174,19 +309,46 @@ void adc_acquisition_task(void *pvParameters)
     esp_err_t   retv;
 
     //i2c_dev_t   ADS1115;
+    ESP_LOGI(TAG, "%s: called", __func__);
 
     //ads1115_write_reg(ADS1115_CFG_REG, ads_mux_config[tracking_channel]);
     retv = ads111x_write_reg( &ECGDev_ads1115, REG_CONFIG, ads_mux_config[tracking_channel]);
     if(retv != ESP_OK)
     {
         ESP_LOGE(TAG, "Error from ads111x_write_reg = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, " what was supposedly written to the config register = %X", ads_mux_config[tracking_channel]);
     }
 
+#ifdef AI_DEBUG
+    // 2026-08-31: ESP Docs AI Assistant recommendations:
+
+    // Add this readback immediately after the write:
+    uint16_t config_val = 0;
+    ads111x_read_reg(&ECGDev_ads1115, REG_CONFIG, &config_val);
+    ESP_LOGI(TAG, "Config AFTER write = 0x%04X (expected 0xC4E8)", config_val);
+
+    // Also verify threshold registers:
+    uint16_t lo = 0, hi = 0;
+    ads111x_read_reg(&ECGDev_ads1115, REG_THRESH_L, &lo);
+    ads111x_read_reg(&ECGDev_ads1115, REG_THRESH_H, &hi);
+    ESP_LOGI(TAG, "LO_THRESH=0x%04X (need 0x0000), HI_THRESH=0x%04X (need 0x8000)", lo, hi);
+#endif
+
     while (1) {
+#ifdef AI_DEBUG
+        // Temporarily add this to adc_acquisition_task to verify the ADS1115
+        // is responding before relying on the interrupt:
+        uint16_t config_val = 0;
+        ads111x_read_reg(&ECGDev_ads1115, REG_CONFIG, &config_val);
+        ESP_LOGI(TAG, "ADS1115 config register = 0x%04X", config_val);
+#endif
+        // Bit 15 (OS) = 1 means conversion complete
+        // If bit 15 is always 0, the chip is not converting        
         if (xSemaphoreTake(ads_rdy_semaphore, portMAX_DELAY) == pdTRUE) {
-            
-            //if (ads1115_read_reg(ADS1115_CONV_REG, &raw_reading) == ESP_OK) {
-            if (ads111x_read_reg(&ECGDev_ads1115, REG_CONFIG, &raw_reading) == ESP_OK) {
+            adc_signal_count++;
+            // if (ads1115_read_reg(ADS1115_CONV_REG, &raw_reading) == ESP_OK) {
+            if (ads111x_read_reg(&ECGDev_ads1115, REG_CONVERSION, &raw_reading) == ESP_OK)
+            {
                 current_batch.channels[tracking_channel] = (int16_t)raw_reading;
             }
 
@@ -199,7 +361,7 @@ void adc_acquisition_task(void *pvParameters)
             }
 
             tracking_channel = next_channel;
-            //ads1115_write_reg(ADS1115_CFG_REG, ads_mux_config[tracking_channel]);
+    
             retv = ads111x_write_reg(&ECGDev_ads1115, REG_CONFIG, ads_mux_config[tracking_channel]);
             if (retv != ESP_OK)
             {
@@ -224,6 +386,8 @@ static esp_err_t ds3231_read_time(rtc_time_t *time) {
 }
 #endif
 
+volatile uint32_t   sd_signal_count = 0;
+
 /**
  * @brief AI recommended functionality for handling the MicroSD file access.
  * 
@@ -235,6 +399,7 @@ void sd_writer_task(void *pvParameters) {
     // rtc_time_t      local_clock_copy;
     struct tm       local_clock_copy;
     esp_err_t       retv;
+    ESP_LOGI(TAG, "%s: called", __func__);
 
     // Seed the initial wall clock
     //ds3231_read_time(&local_clock_copy);
@@ -257,6 +422,7 @@ void sd_writer_task(void *pvParameters) {
 
         // Pull incoming high-speed ECG data from queue
         if (xQueueReceive(adc_queue, &log_data, portMAX_DELAY) == pdTRUE) {
+            sd_signal_count++;
             FILE* f = fopen("/sdcard/ecg_trace.csv", "a");
             if (f != NULL) {
                 // Formats as: HH:MM:SS,Microseconds,Ch0,Ch1,Ch2,Ch3
@@ -281,6 +447,9 @@ void sd_writer_task(void *pvParameters) {
  */
 void Setup_ADC_SD(void)
 {
+    esp_err_t   retv;
+
+    ESP_LOGI(TAG, "%s: called", __func__);
     // The following items were all suggestions from Google AI (see docs/AI-assisted-circuit-and-SW-design)
     // We are going to setup the ADS1115 to generate the ALERT/RDY signal when an ADC capture is ready to 
     // be acquired. This eliminates polling by letting the chip generate an interrupt when a sample is ready
@@ -298,8 +467,23 @@ void Setup_ADC_SD(void)
     ads_rdy_semaphore = xSemaphoreCreateBinary();
     adc_queue = xQueueCreate(100, sizeof(adc_sample_t)); // Expanded queue size for dense trace data
 
-    gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
-    gpio_isr_handler_add(ADS_ALERT_GPIO, ads_gpio_isr_handler, NULL);
+    retv = gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
+    if(retv != ESP_OK)
+    {
+        ESP_LOGD(TAG, "error from gpio_install_isr_service = %d(%s)", retv, esp_err_to_name(retv));
+    }
+    else
+    {
+        ESP_LOGI(TAG, "gpio_install_isr_service OK");
+    }
+
+    retv = gpio_isr_handler_add(ADS_ALERT_GPIO, ads_gpio_isr_handler, NULL);
+    if(retv != ESP_OK)
+    {
+        ESP_LOGD(TAG, "error from gpio_isr_handler_add = %d(%s)", retv, esp_err_to_name(retv));
+    } else {
+        ESP_LOGI(TAG, "gpio_isr_handler_add OK on GPIO %d", ADS_ALERT_GPIO);
+    }
 
     // Pin high priority capture to Core 0, file management to Core 1
     xTaskCreatePinnedToCore(adc_acquisition_task, "ECG_Acq", 4096, NULL, 10, NULL, 0);
@@ -322,11 +506,21 @@ void app_main(void)
 
     // check for device presence, and do the necessary installation.
     FindAndInitDevices();
+    
+    //Init_sdmmc();
+    InitSD_SPI();
 
     // Setup the foundation for the ADC and the MicroSD writer
     Setup_ADC_SD();
 
+    int count = 0;
+    while(1)
+    {
+        // ESP_LOGI(TAG, "Running... SD count = %d, ADC count = %d",sd_signal_count,adc_signal_count);
+        vTaskDelay(1000/portTICK_PERIOD_MS);
+    }
 
     do_restart();
     
 }
+

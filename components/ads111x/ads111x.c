@@ -96,7 +96,7 @@ esp_err_t ads111x_read_reg( i2c_dev_t *dev, uint8_t reg, uint16_t *val)
     uint8_t buf[2];
     esp_err_t res;
 
-    ESP_LOGI(TAG, "ads111x_read_reg");
+    // ESP_LOGI(TAG, "ads111x_read_reg");
 
 #ifdef  USE_PURE_UNCLE_RUS
     if ((res = read_reg(dev, reg, buf, 2)) != ESP_OK)
@@ -121,21 +121,21 @@ static esp_err_t write_reg(i2c_dev_t *dev, uint8_t reg, uint16_t val)
 esp_err_t ads111x_write_reg(i2c_dev_t *dev, uint8_t reg, uint16_t val)
 #endif
 {
-    uint8_t buf[2] = { val >> 8, val };
+    // ESP Docs AI bug fix:
+    uint8_t buf[3] = {
+        reg,
+        (uint8_t)(val >> 8),
+        (uint8_t)(val & 0xFF)
+    };
     esp_err_t res;
 
-    ESP_LOGI(TAG, "ads111x_write_reg");
+    // ESP_LOGI(TAG, "ads111x_write_reg");
 
-#ifdef  USE_PURE_UNCLE_RUS
-    if ((res = i2c_dev_write_reg(dev, reg, buf, 2)) != ESP_OK)
-#else
-    if ((res = i2c_master_transmit(dev->devhandle, buf, 2, -1)) != ESP_OK)
-#endif
+    if ((res = i2c_master_transmit(dev->devhandle, buf, sizeof(buf), -1)) != ESP_OK)
     {
         ESP_LOGE(TAG, "Could not write 0x%04x to register 0x%02x", val, reg);
         return res;
     }
-
 
     return ESP_OK;
 }
@@ -441,7 +441,7 @@ esp_err_t ads111x_get_comp_high_thresh(i2c_dev_t *dev, int16_t *th)
     I2C_DEV_GIVE_MUTEX(dev);
 #else
     esp_err_t   retv;
-    retv = ads111x_read_reg(dev, REG_THRESH_L, (uint16_t *)th);
+    retv = ads111x_read_reg(dev, REG_THRESH_H, (uint16_t *)th);
     if(retv != ESP_OK)
     {
         ESP_LOGE(TAG, " err from ads111x_read_reg = %d(%s)", retv, esp_err_to_name(retv));

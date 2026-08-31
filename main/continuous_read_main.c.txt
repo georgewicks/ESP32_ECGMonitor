@@ -1,0 +1,220 @@
+/*
+ * SPDX-FileCopyrightText: 2021-2022 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <string.h>
+#include <stdio.h>
+#include "sdkconfig.h"
+#include "esp_log.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/semphr.h"
+//#include "esp_adc/adc_continuous.h"
+#include "common.h"
+#include "driver/sdmmc_host.h"
+#include "ECGSignalCapture.h"
+#include "common.h"
+#include "ads111x.h"
+
+
+// if we decide to use HTTP, we might need to use this to avoid I2C timeouts
+SemaphoreHandle_t	xMutex;
+
+
+i2c_master_bus_handle_t bus_handle;
+i2c_master_dev_handle_t dev_handle;
+
+
+void    ECGCapture_Continuous_INO_Task(void *arg);
+TaskHandle_t    ECGCapture_TaskHandle;
+static const char *TAG = "ECG_ADS1115";
+
+
+bool convReady = false;
+
+i2c_dev_t   ads1115dev;
+
+static void measure(size_t n)
+{
+    // wait for conversion end
+    //bool busy;
+    // do
+    // {
+    //     ads111x_is_busy(&devices[n], &busy);
+    // }
+    // while (busy);
+
+    // Read result
+    int16_t raw = 0;
+    if (ads111x_get_value(&ads1115dev, &raw) == ESP_OK)
+    {
+        /*
+        float voltage = gain_val / ADS111X_MAX_VALUE * raw;
+        printf("[%u] Raw ADC value: %d, voltage: %.04f volts\n", n, raw, voltage);
+         */
+        ESP_LOGI(TAG," got ADC ");
+    }
+    else
+        printf("[%u] Cannot read ADC value\n", n);
+}
+
+/* ------------------------------------------------------------------------- */
+/**
+ * @brief SDMMC handling
+ * 
+ */
+
+#define MOUNT_POINT "/sdcard"
+
+esp_vfs_fat_sdmmc_mount_config_t    mount_config = 
+{
+    .format_if_mount_failed = true, // Format card if it cannot be mounted
+    .max_files = 5,                 // Max open files at once
+    .allocation_unit_size = 16 * 1024
+};
+
+void    Init_sdmmc(void)
+{
+    sdmmc_card_t *card;
+    ESP_LOGI(TAG, "Initializing SD card via SDMMC peripheral...");
+
+    // 2. Setup host configuration (Defaults to 4-bit mode slot 1)
+    sdmmc_host_t host = SDMMC_HOST_DEFAULT();
+
+    // 3. Setup slot configuration 
+    sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
+    slot_config.width = 1; // Set to 1 for 1-bit mode (saves GPIO pins)
+    //slot_config.width = 4; // Set to 1 for 1-bit mode (saves GPIO pins)
+
+    // Optional: Enable internal pullups if hardware external resistors are missing
+    // slot_config.flags |= SDMMC_SLOT_FLAG_INTERNAL_PULLUP;
+
+    // 4. Mount the filesystem and initialize the driver
+    esp_err_t ret = esp_vfs_fat_sdmmc_mount(MOUNT_POINT, &host, &slot_config, 
+                               &mount_config, &card);
+
+    if (ret != ESP_OK) {
+        if (ret == ESP_FAIL) {
+            ESP_LOGE(TAG, "Failed to mount filesystem.");
+        } else {
+            ESP_LOGE(TAG, "Failed to initialize the card (%s).", esp_err_to_name(ret));
+        }
+        return;
+    }
+
+    // Card initialized successfully, print information
+    sdmmc_card_print_info(stdout, card);
+}
+
+void ECGCapture_Continuous_INO_Task(void *arg)        // alert pin version
+{
+    uint32_t    samcount = 0;
+    esp_err_t   retv;
+
+    ESP_LOGI(TAG, "%s started", __func__);
+
+    //startADCReading(ADS1X15_REG_CONFIG_MUX_DIFF_0_1,/*continuous=*/true);
+    retv = ads111x_set_mode(&ads1115dev, ADS111X_MODE_CONTINUOUS);    // Continuous conversion mode
+    if(retv != ESP_OK)
+    {
+        ESP_LOGE(TAG,"Error from ads111x_set_mode = %d(%s)",retv, esp_err_to_name(retv));
+    }
+    retv = ads111x_set_data_rate(&ads1115dev, ADS111X_DATA_RATE_860);   // Max 860 SPS
+    if(retv != ESP_OK)
+    {
+        ESP_LOGE(TAG,"Error from ads111x_set_data_rate = %d(%s)",retv, esp_err_to_name(retv));
+    }
+    /*
+    retv = ads111x_set_input_mux(&ads1115dev, ADS111X_MUX_0_GND);    positive = AIN0, negative = GND
+    if(retv != ESP_OK)
+    {
+        ESP_LOGE(TAG,"Error from ads111x_set_input_mux = %d(%s)",retv, esp_err_to_name(retv));
+    }
+    */
+    retv = ads111x_set_gain(&ads1115dev, ADS111X_GAIN_4V096);                   // TODO: check Gain value!
+    if(retv != ESP_OK)
+    {
+        ESP_LOGE(TAG,"Error from ads111x_set_gain = %d(%s)",retv, esp_err_to_name(retv));
+    }
+
+    vTaskDelay(100);
+
+    while (1)
+    {
+        // If we don't have new data, skip this iteration.
+        if (!convReady)
+        {
+            //vTaskDelay(10);
+            vTaskDelay(1);
+            continue;
+        }
+        else
+        {
+
+            //   int16_t results = getLastConversionResults();
+            measure(1);
+            // Limit output - post only some at a time.
+            //if(!(samcount%20))
+            //   ESP_LOGI(TAG, "Differential: %hX  (%f V)", results, computeVolts(results));
+            samcount++;
+            convReady = false;
+        }
+
+    }
+}
+
+static void IRAM_ATTR gpio_ALRT_isr_handler(void* arg)
+{
+    convReady = true;
+}
+
+
+void app_main(void)
+{
+
+
+    esp_err_t   retv;
+
+    ESP_LOGI(TAG, "%s starting", __func__);
+
+    // Initialize I2C driver
+    InitI2C();
+
+    // TODO: i2c_set_timeout() is no longer present under driver/i2c_master.h: see alternatives
+    // The I2C devices may need to stretch out responses, so allow for larger timeout.
+    //    i2c_set_timeout(I2C_NUM_0, 100000);
+
+    // Init the ADS1115 - just sets the foundation for the chip
+    retv = ads111x_init_desc(&ads1115dev,dev_handle, ADS111X_ADDR_GND,0,0,0);
+
+
+    // set up the GPIO pin for interrupt
+    // ? MUST HAVE?????
+    gpio_config_t io_conf = {};
+    ESP_LOGI(TAG, "%s called", __func__);    
+    io_conf.intr_type = GPIO_INTR_NEGEDGE;                  // ALRT signal is given by setAlertMode()
+    io_conf.pin_bit_mask = (1ULL << GPIO_NUM_19);           // bit mask of the pins, use GPIO4/5 here
+    io_conf.mode = GPIO_MODE_INPUT;                         // set as input mode                 
+    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;               // enable pull-up mode ??
+
+    ESP_ERROR_CHECK(gpio_config(&io_conf));
+
+    Init_sdmmc();
+
+    // Init the ISR
+    ESP_ERROR_CHECK(gpio_install_isr_service(0));
+    ESP_ERROR_CHECK(gpio_isr_handler_add(GPIO_NUM_19, gpio_ALRT_isr_handler, (void *)GPIO_NUM_19));
+
+    ESP_LOGI(TAG, "%s creating ECGCapture_Continuous_INO_Task", __func__);
+
+    xTaskCreate(ECGCapture_Continuous_INO_Task, "ECGCapture_Continuous_INO_Task", 4096, NULL, 3, &ECGCapture_TaskHandle);
+    while(1) {
+        printf("*");
+        vTaskDelay(1000);
+    }
+
+
+
+}
