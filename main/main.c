@@ -22,6 +22,12 @@
 
 #include "driver/spi_common.h"      // for SPI mode
 
+#include "nvs_flash.h"
+
+// For Time sync with NTP:
+#include "esp_netif_sntp.h"
+#include "esp_sntp.h"
+
 #include <esp_log.h>
 
 #include "spoof_i2cdev.h"
@@ -48,6 +54,8 @@ extern i2c_dev_t	ECGDev_ads1115;
 extern esp_err_t	InitADS1115(void);
 extern i2c_dev_t    DS3231_dev;
 extern esp_err_t    InitDS3231(void);
+extern void wifi_init_sta(void);
+extern void fetch_sntp_time(void);
 
 static QueueHandle_t adc_queue = NULL;
 static SemaphoreHandle_t ads_rdy_semaphore = NULL;
@@ -117,58 +125,6 @@ static void     do_chip_info(void)
 
 #define MOUNT_POINT "/sdcard"
 
-// ******************************************************************
-// Re-using an older section of code that was written for handling SDMMC
-// ******************************************************************
-/* ------------------------------------------------------------------------- */
-/**
- * @brief SDMMC handling
- * 
- */
-#ifdef  USE_SDMMC
-esp_vfs_fat_sdmmc_mount_config_t    mount_config = 
-{
-    .format_if_mount_failed = true, // Format card if it cannot be mounted
-    .max_files = 5,                 // Max open files at once
-    .allocation_unit_size = 16 * 1024
-};
-
-void    Init_sdmmc(void)
-{
-    sdmmc_card_t *card;
-    ESP_LOGI(TAG, "Initializing SD card via SDMMC peripheral...");
-
-    // 2. Setup host configuration (Defaults to 4-bit mode slot 1)
-    sdmmc_host_t host = SDMMC_HOST_DEFAULT();
-
-    // 3. Setup slot configuration 
-    sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
-    slot_config.width = 1; // Set to 1 for 1-bit mode (saves GPIO pins)
-    //slot_config.width = 4; // Set to 1 for 1-bit mode (saves GPIO pins)
-
-    // Optional: Enable internal pullups if hardware external resistors are missing
-    // slot_config.flags |= SDMMC_SLOT_FLAG_INTERNAL_PULLUP;
-
-    // 4. Mount the filesystem and initialize the driver
-    esp_err_t ret = esp_vfs_fat_sdmmc_mount(MOUNT_POINT, &host, &slot_config, 
-                               &mount_config, &card);
-
-    if (ret != ESP_OK) {
-        if (ret == ESP_FAIL) {
-            ESP_LOGE(TAG, "Failed to mount filesystem.");
-        } else {
-            ESP_LOGE(TAG, "Failed to initialize the card (%s).", esp_err_to_name(ret));
-        }
-        return;
-    }
-
-    // See SD/SDIO/MMC Driver pages in 
-    //    https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/storage/sdmmc.html
-    // Card initialized successfully, print information
-    sdmmc_card_print_info(stdout, card);
-}
-#endif
-// Re-using an older section of code that was written for handling SDMMC
 /**
  * @brief For handling the MicroSD card adapter in SPI mode.
  * 
@@ -341,10 +297,12 @@ void adc_acquisition_task(void *pvParameters)
         uint16_t config_val = 0;
         ads111x_read_reg(&ECGDev_ads1115, REG_CONFIG, &config_val);
         ESP_LOGI(TAG, "ADS1115 config register = 0x%04X", config_val);
-#endif
         // Bit 15 (OS) = 1 means conversion complete
         // If bit 15 is always 0, the chip is not converting        
-        if (xSemaphoreTake(ads_rdy_semaphore, portMAX_DELAY) == pdTRUE) {
+#endif
+
+        if (xSemaphoreTake(ads_rdy_semaphore, portMAX_DELAY) == pdTRUE) 
+        {
             adc_signal_count++;
             // if (ads1115_read_reg(ADS1115_CONV_REG, &raw_reading) == ESP_OK) {
             if (ads111x_read_reg(&ECGDev_ads1115, REG_CONVERSION, &raw_reading) == ESP_OK)
@@ -368,6 +326,75 @@ void adc_acquisition_task(void *pvParameters)
                 ESP_LOGE(TAG, "Error from ads111x_write_reg = %d(%s)", retv, esp_err_to_name(retv));
             }
         }
+    }
+}
+
+/**
+ * @brief   Google AI supplied Time Sync code
+ * 
+ */
+
+#if 0
+// Relevant include files already put in..
+
+#include <string.h>
+#include <time.h>
+#include <sys/time.h>
+#include "esp_netif_sntp.h"
+#include "esp_sntp.h"
+#include "esp_log.h"
+#include "ds3231.h" // Assuming an external component like esp-idf-ds3231
+
+static const char *TAG = "time_sync";
+#endif
+
+#if 0
+// Initialize SNTP to fetch internet time
+void initialize_sntp(void)
+{
+    ESP_LOGI(TAG, "Initializing SNTP");
+    if (esp_sntp_enabled())
+    {
+        esp_sntp_stop(); // Safely shuts down lwIP SNTP client
+    }
+
+    // Now safe to reconfigure without crashing
+    esp_sntp_setoperatingmode(ESP_SNTP_OPMODE_POLL);
+    esp_sntp_setservername(0, "new.pool.ntp.org");
+    esp_sntp_init();
+}
+#endif
+
+// Main sync routine
+void sync_ntp_to_ds3231(i2c_dev_t *dev)
+{
+    void do_sntp_app_main(void);
+
+    // Wait until system time is updated by NTP (retry up to 30 seconds)
+    time_t now = 0;
+    struct tm timeinfo = { 0 };
+    int retry = 0;
+    const int retry_count = 30;
+
+    while (timeinfo.tm_year < (2016 - 1900) && ++retry < retry_count) {
+        ESP_LOGI(TAG, "Waiting for system time to sync... (%d/%d)", retry, retry_count);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        time(&now);
+        localtime_r(&now, &timeinfo);
+    }
+
+    if (retry == retry_count) {
+        ESP_LOGE(TAG, "System time sync with NTP failed!");
+        return;
+    }
+
+    ESP_LOGI(TAG, "NTP Synchronized successfully. Updating DS3231 RTC...");
+
+    // Write current system time struct to DS3231
+    if (ds3231_set_time(dev, &timeinfo) == ESP_OK) {
+        ESP_LOGI(TAG, "DS3231 successfully updated with Wi-Fi time.");
+    } else {
+        ESP_LOGE(TAG, "Failed to write time to DS3231.");
     }
 }
 
@@ -492,6 +519,8 @@ void Setup_ADC_SD(void)
 
 void app_main(void)
 {
+    int sec_count = 0;
+
     ESP_LOGI(TAG, "%s: starting", __func__);
 
     do_chip_info();
@@ -503,10 +532,32 @@ void app_main(void)
     }
 
     InitI2C();
+    //Initialize NVS
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+      ESP_ERROR_CHECK(nvs_flash_erase());
+      ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
+
+    if (CONFIG_LOG_MAXIMUM_LEVEL > CONFIG_LOG_DEFAULT_LEVEL) {
+        /* If you only want to open more logs in the wifi module, you need to make the max level greater than the default level,
+         * and call esp_log_level_set() before esp_wifi_init() to improve the log level of the wifi module. */
+        esp_log_level_set("wifi", CONFIG_LOG_MAXIMUM_LEVEL);
+    }
 
     // check for device presence, and do the necessary installation.
     FindAndInitDevices();
     
+    // Initialize WiFi - we need WiFi enabled in order to do NTP synchronization.
+    ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
+    wifi_init_sta();
+
+    fetch_sntp_time();              // ← ADD THIS - starts SNTP and blocks until synced
+   
+    // Now, we can sync up the RTC...
+    sync_ntp_to_ds3231(&DS3231_dev);
+
     //Init_sdmmc();
     InitSD_SPI();
 
@@ -518,6 +569,11 @@ void app_main(void)
     {
         // ESP_LOGI(TAG, "Running... SD count = %d, ADC count = %d",sd_signal_count,adc_signal_count);
         vTaskDelay(1000/portTICK_PERIOD_MS);
+        sec_count++;
+        if(sec_count == 60)
+        {
+            break;
+        }
     }
 
     do_restart();

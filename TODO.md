@@ -58,3 +58,6 @@
 # 2026-08-31
 * must optimise the ADC data stream for ECG analysis: need to expand the adc_sample_t structure so that 215 samples per channel for the ECG trace data.
 
+# 2026-09-01
+* Added SNTP time synchronization to the DS3231
+* Must add 10k pull-ups to MISO, MOSI, CLK, and CS lines.
