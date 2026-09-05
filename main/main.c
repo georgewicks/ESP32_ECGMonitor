@@ -19,23 +19,33 @@
 #include "esp_timer.h"
 #include "esp_vfs_fat.h"
 #include "sdmmc_cmd.h"
-
 #include "driver/spi_common.h"      // for SPI mode
-
+#include "pcf8574.h"
 #include "nvs_flash.h"
 
 // For Time sync with NTP:
 #include "esp_netif_sntp.h"
 #include "esp_sntp.h"
-
 #include <esp_log.h>
-
 #include "spoof_i2cdev.h"
 #include "common.h"
 #include "ADCCapture.h"
 
+// Define GPIO mappings
+#define PIN_NUM_MISO 13
+#define PIN_NUM_MOSI 11
+#define PIN_NUM_CLK  12
+#define PIN_NUM_CS   10
+
+#define MOUNT_POINT "/sdcard"
+
+#define TEST_ECG_CSV
+#define PKG_SAMPLES_QRS
+
 
 static const char *TAG = "main";
+
+extern void     basic_test_loop( void );
 
 extern void     i2c_master_init(void);
 extern void     InitI2C(void);
@@ -48,14 +58,31 @@ SemaphoreHandle_t	xMutex;
 i2c_master_bus_handle_t bus_handle;
 i2c_master_dev_handle_t dev_handle;
 
-extern esp_err_t ads111x_read_reg( i2c_dev_t *dev, uint8_t reg, uint16_t *val);
-extern esp_err_t ads111x_write_reg(i2c_dev_t *dev, uint8_t reg, uint16_t val);
+extern esp_err_t    ads111x_read_reg( i2c_dev_t *dev, uint8_t reg, uint16_t *val);
+extern esp_err_t    ads111x_write_reg(i2c_dev_t *dev, uint8_t reg, uint16_t val);
 extern i2c_dev_t	ECGDev_ads1115;
 extern esp_err_t	InitADS1115(void);
 extern i2c_dev_t    DS3231_dev;
 extern esp_err_t    InitDS3231(void);
-extern void wifi_init_sta(void);
-extern void fetch_sntp_time(void);
+extern void         wifi_init_sta(void);
+extern void         fetch_sntp_time(void);
+
+// ECG sample handling: we could keep the same 4-channel sample array,
+// sending to the sd_task, that we eventually turn into a full 1 second 
+// trace buffer for the ECG processing.
+extern void         PushToECGProc(ECG_adc_sample_t *curECGptr);
+
+#define REC_PING    0
+#define REC_PONG    1
+ECG_adc_sample_t    ECGPing;
+ECG_adc_sample_t    ECGPong;
+
+ECG_adc_sample_t    *curECGptr = &ECGPing;
+int     ECG_Buff_indicator = REC_PING;
+
+#define ECG_REC_MAX     (215)
+
+
 
 static QueueHandle_t adc_queue = NULL;
 static SemaphoreHandle_t ads_rdy_semaphore = NULL;
@@ -91,6 +118,7 @@ static void     do_restart(void)
     esp_restart();
 
 }
+
 static void     do_chip_info(void)
 {
 
@@ -123,18 +151,12 @@ static void     do_chip_info(void)
 
 }
 
-#define MOUNT_POINT "/sdcard"
+/* -------------------------------------------------------------------------------------------------------------- */
 
 /**
  * @brief For handling the MicroSD card adapter in SPI mode.
  * 
  */
-
-// Define GPIO mappings
-#define PIN_NUM_MISO 13
-#define PIN_NUM_MOSI 11
-#define PIN_NUM_CLK  12
-#define PIN_NUM_CS   10
 
 void    InitSD_SPI(void)
 {
@@ -232,19 +254,19 @@ static void FindAndInitDevices(void)
     }
 }
 
-// AI suggested.
+/* --------------------------------------------------------------------------------------------- */
 
-
-// Helper: Convert BCD format from DS3231 to regular integers
-static uint8_t bcd_to_dec(uint8_t val) {
-    return ((val / 16) * 10) + (val % 16);
-}
 
 /**
  * @brief ADC related items, AI suggested
  * 
  */
 
+
+// Helper: Convert BCD format from DS3231 to regular integers
+static uint8_t bcd_to_dec(uint8_t val) {
+    return ((val / 16) * 10) + (val % 16);
+}
 static void IRAM_ATTR ads_gpio_isr_handler(void* arg) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     xSemaphoreGiveFromISR(ads_rdy_semaphore, &xHigherPriorityTaskWoken);
@@ -253,7 +275,39 @@ static void IRAM_ATTR ads_gpio_isr_handler(void* arg) {
     }
 }
 
-volatile  uint32_t  adc_signal_count = 0;
+volatile  uint32_t  adc_signal_count = 0;                   // count of ADC semaphore signals - ADC ISR gives the semaphore
+
+#ifdef AI_DEBUG
+
+// AI suggested diagnostics
+void    Check_ADS1115_Regs( void )
+{
+    // 2026-08-31: ESP Docs AI Assistant recommendations:
+
+    // Add this readback immediately after the write:
+    uint16_t config_val = 0;
+    ads111x_read_reg(&ECGDev_ads1115, REG_CONFIG, &config_val);
+    ESP_LOGI(TAG, "Config AFTER write = 0x%04X (expected 0xC4E8)", config_val);
+
+    // Also verify threshold registers:
+    uint16_t lo = 0, hi = 0;
+    ads111x_read_reg(&ECGDev_ads1115, REG_THRESH_L, &lo);
+    ads111x_read_reg(&ECGDev_ads1115, REG_THRESH_H, &hi);
+    ESP_LOGI(TAG, "LO_THRESH=0x%04X (need 0x0000), HI_THRESH=0x%04X (need 0x8000)", lo, hi);
+}
+
+void    Check_ADS1115_Regs_2(void)
+{
+    // Temporarily add this to adc_acquisition_task to verify the ADS1115
+    // is responding before relying on the interrupt:
+    uint16_t config_val = 0;
+    ads111x_read_reg(&ECGDev_ads1115, REG_CONFIG, &config_val);
+    ESP_LOGI(TAG, "ADS1115 config register = 0x%04X", config_val);
+    // Bit 15 (OS) = 1 means conversion complete
+    // If bit 15 is always 0, the chip is not converting
+}
+
+#endif
 
 // This is the AI recommendation: some slight changes in order to implement the code here.
 // CORE 0: High-Priority ECG Acquisition
@@ -263,6 +317,10 @@ void adc_acquisition_task(void *pvParameters)
     adc_sample_t current_batch = {0};
     uint16_t raw_reading = 0;
     esp_err_t   retv;
+
+    // ECG sample handling
+    curECGptr = &ECGPing;       // Kick off with the Ping Buffer
+    int ESampCnt = 0;
 
     //i2c_dev_t   ADS1115;
     ESP_LOGI(TAG, "%s: called", __func__);
@@ -276,34 +334,18 @@ void adc_acquisition_task(void *pvParameters)
     }
 
 #ifdef AI_DEBUG
-    // 2026-08-31: ESP Docs AI Assistant recommendations:
-
-    // Add this readback immediately after the write:
-    uint16_t config_val = 0;
-    ads111x_read_reg(&ECGDev_ads1115, REG_CONFIG, &config_val);
-    ESP_LOGI(TAG, "Config AFTER write = 0x%04X (expected 0xC4E8)", config_val);
-
-    // Also verify threshold registers:
-    uint16_t lo = 0, hi = 0;
-    ads111x_read_reg(&ECGDev_ads1115, REG_THRESH_L, &lo);
-    ads111x_read_reg(&ECGDev_ads1115, REG_THRESH_H, &hi);
-    ESP_LOGI(TAG, "LO_THRESH=0x%04X (need 0x0000), HI_THRESH=0x%04X (need 0x8000)", lo, hi);
+    Check_ADS1115_Regs();
 #endif
 
     while (1) {
-#ifdef AI_DEBUG
-        // Temporarily add this to adc_acquisition_task to verify the ADS1115
-        // is responding before relying on the interrupt:
-        uint16_t config_val = 0;
-        ads111x_read_reg(&ECGDev_ads1115, REG_CONFIG, &config_val);
-        ESP_LOGI(TAG, "ADS1115 config register = 0x%04X", config_val);
-        // Bit 15 (OS) = 1 means conversion complete
-        // If bit 15 is always 0, the chip is not converting        
-#endif
 
+#ifdef AI_DEBUG
+    Check_ADS1115_Regs_2(void);
+#endif
         if (xSemaphoreTake(ads_rdy_semaphore, portMAX_DELAY) == pdTRUE) 
         {
             adc_signal_count++;
+
             // if (ads1115_read_reg(ADS1115_CONV_REG, &raw_reading) == ESP_OK) {
             if (ads111x_read_reg(&ECGDev_ads1115, REG_CONVERSION, &raw_reading) == ESP_OK)
             {
@@ -398,22 +440,42 @@ void sync_ntp_to_ds3231(i2c_dev_t *dev)
     }
 }
 
-#if 0
-// AI recommended DS3231 API calls
-static esp_err_t ds3231_read_time(rtc_time_t *time) {
-    uint8_t reg = DS3231_TIME_REG;
-    uint8_t data[3];
-    esp_err_t err = i2c_master_write_read_device(I2C_MASTER_NUM, DS3231_I2C_ADDR, &reg, 1, data, 3, pdMS_TO_TICKS(10));
-    if (err == ESP_OK) {
-        time->second = bcd_to_dec(data[0] & 0x7F);
-        time->minute = bcd_to_dec(data[1] & 0x7F);
-        time->hour   = bcd_to_dec(data[2] & 0x3F); // 24-hour mode assumption
-    }
-    return err;
-}
-#endif
+volatile uint32_t   sd_signal_count = 0;        // count of Queue recvs - generated from the ADC task
+void    AppendToECGPacket(adc_sample_t *log_data)
+{
+    static  uint32_t    ECG_4Channel_count = 0;
 
-volatile uint32_t   sd_signal_count = 0;
+    if(ECG_4Channel_count >= ECG_REC_MAX)
+    {
+        ESP_LOGE(TAG, "Out of bounds for ECG_4Channel_count! value = %d", ECG_4Channel_count);
+    }
+
+    if(ECG_4Channel_count < ECG_REC_MAX)
+    {
+        curECGptr->samples[0][ECG_4Channel_count] = log_data->channels[0];
+        curECGptr->samples[1][ECG_4Channel_count] = log_data->channels[1];
+        curECGptr->samples[2][ECG_4Channel_count] = log_data->channels[2];
+        curECGptr->samples[3][ECG_4Channel_count] = log_data->channels[3];
+        ECG_4Channel_count++;
+        if(ECG_4Channel_count == ECG_REC_MAX)
+        {
+            PushToECGProc(curECGptr);       // Done, now pass it to the ECG processing
+
+            // Switch working ECG ADC buffers to avoid stomping on working data to capture
+            if(ECG_4Channel_count == REC_PING)
+            {
+                curECGptr = &ECGPong;
+                ECG_Buff_indicator = REC_PONG;
+            }    
+            else
+            {
+                curECGptr = &ECGPing;
+                ECG_Buff_indicator = REC_PING;
+            }
+            ECG_4Channel_count = 0;         // ready new record...
+        }
+    }
+}
 
 /**
  * @brief AI recommended functionality for handling the MicroSD file access.
@@ -450,6 +512,7 @@ void sd_writer_task(void *pvParameters) {
         // Pull incoming high-speed ECG data from queue
         if (xQueueReceive(adc_queue, &log_data, portMAX_DELAY) == pdTRUE) {
             sd_signal_count++;
+#ifdef  TEST_ECG_CSV
             FILE* f = fopen("/sdcard/ecg_trace.csv", "a");
             if (f != NULL) {
                 // Formats as: HH:MM:SS,Microseconds,Ch0,Ch1,Ch2,Ch3
@@ -464,6 +527,10 @@ void sd_writer_task(void *pvParameters) {
                         log_data.channels[3]);
                 fclose(f);
             }
+#endif
+#ifdef  PKG_SAMPLES_QRS
+            AppendToECGPacket(&log_data);
+#endif
         }
     }
 }
@@ -513,7 +580,7 @@ void Setup_ADC_SD(void)
     }
 
     // Pin high priority capture to Core 0, file management to Core 1
-    xTaskCreatePinnedToCore(adc_acquisition_task, "ECG_Acq", 4096, NULL, 10, NULL, 0);
+    xTaskCreatePinnedToCore(adc_acquisition_task, "ECG_Acq", 8192, NULL, 10, NULL, 0);
     xTaskCreatePinnedToCore(sd_writer_task, "SD_Write", 4096, NULL, 4, NULL, 1);
 }
 
@@ -548,6 +615,11 @@ void app_main(void)
 
     // check for device presence, and do the necessary installation.
     FindAndInitDevices();
+
+    // Instantiate the PCF8574 device (Default addr is usually 0x20 or 0x3F)
+    ESP_LOGI(TAG, "Init the PCF8574");
+    pcf8574_dev_t pcf_dev;
+    ESP_ERROR_CHECK(pcf8574_init(bus_handle, 0x20, &pcf_dev));
     
     // Initialize WiFi - we need WiFi enabled in order to do NTP synchronization.
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
@@ -564,9 +636,33 @@ void app_main(void)
     // Setup the foundation for the ADC and the MicroSD writer
     Setup_ADC_SD();
 
+#if  0
+// Pause until we get the 16-DIP package of the PCF8574 (GPIO Extender)
+        ESP_LOGI(TAG, "about to go blinking...");
+ 
+    // 3. Test writing (e.g., blink an LED on pin 0)
+    while(1) {
+        ESP_LOGI(TAG, "command to turn on LED.. ");
+        ret = pcf8574_write(&pcf_dev, 0x01);
+        if(ret == ESP_OK)
+        {
+            ESP_LOGI(TAG, "LED should be on");
+        }
+        else
+        {
+            ESP_LOGE(TAG, "err from pcf8574_write = %d", ret);
+        }
+        vTaskDelay(1000/portTICK_PERIOD_MS);
+        pcf8574_write(&pcf_dev, 0x00);
+        vTaskDelay(1000/portTICK_PERIOD_MS);
+        ESP_LOGI(TAG, "blinking...");
+    }
+#endif
     int count = 0;
     while(1)
     {
+        // This is a visual way of confirming that the ADC capture is functioning... or not.
+        // TODO: Move this to a basic POST test, that can be invoked for testing.
         // ESP_LOGI(TAG, "Running... SD count = %d, ADC count = %d",sd_signal_count,adc_signal_count);
         vTaskDelay(1000/portTICK_PERIOD_MS);
         sec_count++;

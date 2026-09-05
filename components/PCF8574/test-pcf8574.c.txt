@@ -1,0 +1,48 @@
+/**
+ * @file test-pcf8574.c
+ * @author george.r.wicks@gmail.com
+ * @brief  Test code designed by Google AI
+ * @version 0.1
+ * @date 2026-09-02
+ * 
+ * @copyright Copyright (c) 2026
+ * 
+ */
+#include <string.h>
+#include <time.h>
+#include <sys/time.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/event_groups.h"
+#include "esp_system.h"
+#include "esp_wifi.h"
+#include "esp_event.h"
+#include "driver/i2c_master.h"
+#include "pcf8574.h"
+
+void app_main(void) {
+    // 1. Initialize the master bus config
+    i2c_master_bus_config_t bus_config = {
+        .clk_source = I2C_CLK_SRC_DEFAULT,
+        .i2c_port = I2C_NUM_0,
+        .scl_io_num = GPIO_NUM_22,
+        .sda_io_num = GPIO_NUM_21,
+        .glitch_ignore_cnt = 7,
+        .flags.enable_internal_pullup = true,
+    };
+    
+    i2c_master_bus_handle_t bus_handle;
+    ESP_ERROR_CHECK(i2c_new_master_bus(&bus_config, &bus_handle));
+
+    // 2. Instantiate the PCF8574 device (Default addr is usually 0x20 or 0x3F)
+    pcf8574_dev_t pcf_dev;
+    ESP_ERROR_CHECK(pcf8574_init(bus_handle, 0x20, &pcf_dev));
+
+    // 3. Test writing (e.g., blink an LED on pin 0)
+    while(1) {
+        pcf8574_write(&pcf_dev, 0x01);
+        vTaskDelay(pdMS_TO_TICKS(500));
+        pcf8574_write(&pcf_dev, 0x00);
+        vTaskDelay(pdMS_TO_TICKS(500));
+    }
+}

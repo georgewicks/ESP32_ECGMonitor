@@ -49,6 +49,18 @@ typedef struct {
     int16_t channels[4];
 } adc_sample_t;
 
+/**
+ * @brief  ADC samples for ECG capture
+ * 
+ */
+#define     NUM_CHANNELS        (4)
+#define     NUM_SAMPLES         (215)       // 4 * 215 = 860 SPS
+
+typedef struct {
+    uint64_t    micro_timestamp;
+    uint16_t    samples[NUM_CHANNELS][NUM_SAMPLES];
+} ECG_adc_sample_t;
+
 typedef struct {
     uint8_t second;
     uint8_t minute;

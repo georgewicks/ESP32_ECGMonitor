@@ -59,5 +59,28 @@
 * must optimise the ADC data stream for ECG analysis: need to expand the adc_sample_t structure so that 215 samples per channel for the ECG trace data.
 
 # 2026-09-01
-* Added SNTP time synchronization to the DS3231
-* Must add 10k pull-ups to MISO, MOSI, CLK, and CS lines.
+* Added SNTP time synchronization to the DS3231                    - done, BUT fix ds3231_set_time!
+* Must add 10k pull-ups to MISO, MOSI, CLK, and CS lines.          - done
+* debug ds3231_set_time
+* ECG analysis and processing:
+    * Add esp-dsp component for the Pan-Tompkins QRS SW
+    * Layout the QRS Detect workflow: from the first DSP operations to the write of the final chart segment for the given sample.
+* Look into expanding the adc_sample_t structure to now have 215 16-bit ADC samples per channel, this having a total of 860 16-bit samples per second.
+    * Have a dual sample buffers, one to send on to Analysis and Processing stage, the other as the current sampling buffer for the ADC task
+    * Make it "ping-pong" scheme, using pointers of the adc sample buffers
+    * Using already allocated memory buffers avoids using dynamic memory allocation issues.
+    
+# 2026-09-02
+* Add PCF8574 GPIO extender component: we can use that for handling the Leads Off indication from the AD8232 heart monitor board.
+
+# 2026-09-03
+* Had problems with commanding the PCF8574. After a lot of AI assisted debugging, tracked down the problem to be the extra pull-up resistors on the blue breadboard - they're SMD resistors, I'm not going to remove. Ordered PCF8574s in 16 DIP package, since they're strictly just the ICs, there are no extra pull-up resistors to contend with. I wrote a description of the problem, and put it within the docs folder.
+* The AI assistant pointed out that there are other boards with potential problems involving bus overloading. Good to be made aware of the limitations that are inherent when using these small boards. Also drives home the point that there should be datasheets available. A lot of the places that you buy these parts from do not provide datasheets, which is certainly aggravating, but just some extra work is needed to be done. 
+* Must start building up the basic folder and file structure for the ECG Analysis. Need QRS Detection as one of the most important items, along with the inclusion of ESP-DSP component.
+* Flesh out the recording of the ADC sample to the ECG-ISHNE formatted file.
+    * Define the ADC sample structure:
+        4 channels
+        215 16-bit sample   (each channel captures 215 samples, for a grand total of 860 SPS)
+
+# 2026-09-04
+* Add more info on Digital Filter design. Put together a workflow description of how engineers design and implement digital filters for signal processing.

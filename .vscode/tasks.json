@@ -1,0 +1,18 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run Custom ESP-IDF Python Script",
+            "type": "shell",
+            "command": "/home/gwicks/venv/bin/python",
+            "args": [
+                "/home/gwicks/ESP32-ECGMonitor/scripts/get_dig_filter_coef_diff_eqn.py"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        }
+    ]
+}

@@ -172,7 +172,7 @@ esp_err_t ds3231_set_time(i2c_dev_t *dev, struct tm *time)
     retv = i2c_master_transmit( dev->devhandle, buff, 8, -1);
     if(retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from i2c_master_transmit = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, "ds3231_set_time err from i2c_master_transmit = %d(%s)", retv, esp_err_to_name(retv));
     }
 #endif
 
@@ -221,7 +221,7 @@ esp_err_t ds3231_set_alarm(i2c_dev_t *dev, ds3231_alarm_t alarms, struct tm *tim
     retv = i2c_master_transmit( dev->devhandle, data, i+1, -1);
     if(retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from i2c_master_transmit = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, "ds3231_set_alarm err from i2c_master_transmit = %d(%s)", retv, esp_err_to_name(retv));
     }
 #endif
 
@@ -302,7 +302,7 @@ esp_err_t ds3231_get_oscillator_stop_flag(i2c_dev_t *dev, bool *flag)
     esp_err_t retv = ds3231_get_flag(dev, DS3231_ADDR_STATUS, DS3231_STAT_OSCILLATOR, &f);
     if(retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from ds3231_get_flag = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, "ds3231_get_oscillator_stop_flag err from ds3231_get_flag = %d(%s)", retv, esp_err_to_name(retv));
     }
 #endif
 
@@ -323,7 +323,7 @@ esp_err_t ds3231_clear_oscillator_stop_flag(i2c_dev_t *dev)
     esp_err_t retv = ds3231_set_flag(dev, DS3231_ADDR_STATUS, DS3231_STAT_OSCILLATOR, DS3231_CLEAR);
     if(retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from ds3231_set_flag = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, "ds3231_clear_oscillator_stop_flag err from ds3231_set_flag = %d(%s)", retv, esp_err_to_name(retv));
     }
 #endif
 
@@ -342,7 +342,7 @@ esp_err_t ds3231_get_alarm_flags(i2c_dev_t *dev, ds3231_alarm_t *alarms)
     esp_err_t retv = ds3231_get_flag(dev, DS3231_ADDR_STATUS, DS3231_ALARM_BOTH, (uint8_t *)alarms);
     if(retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from ds3231_get_flag = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, "ds3231_get_alarm_flags err from ds3231_get_flag = %d(%s)", retv, esp_err_to_name(retv));
     }
 #endif
 
@@ -361,7 +361,7 @@ esp_err_t ds3231_clear_alarm_flags(i2c_dev_t *dev, ds3231_alarm_t alarms)
     esp_err_t retv = ds3231_set_flag(dev, DS3231_ADDR_STATUS, alarms, DS3231_CLEAR);
     if(retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from ds3231_set_flag = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, "ds3231_clear_alarm_flags err from ds3231_set_flag = %d(%s)", retv, esp_err_to_name(retv));
     }
 #endif
 
@@ -381,7 +381,7 @@ esp_err_t ds3231_enable_alarm_ints(i2c_dev_t *dev, ds3231_alarm_t alarms)
     esp_err_t retv = ds3231_set_flag(dev, DS3231_ADDR_CONTROL, DS3231_CTRL_ALARM_INTS | alarms, DS3231_SET);
     if(retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from ds3231_set_flag = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, "ds3231_enable_alarm_ints err from ds3231_set_flag = %d(%s)", retv, esp_err_to_name(retv));
     }
 #endif
 
@@ -403,7 +403,7 @@ esp_err_t ds3231_disable_alarm_ints(i2c_dev_t *dev, ds3231_alarm_t alarms)
     esp_err_t retv = ds3231_set_flag(dev, DS3231_ADDR_CONTROL, alarms, DS3231_CLEAR);
     if(retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from ds3231_set_flag = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, "ds3231_disable_alarm_ints err from ds3231_set_flag = %d(%s)", retv, esp_err_to_name(retv));
     }
 #endif
 
@@ -422,7 +422,7 @@ esp_err_t ds3231_enable_32khz(i2c_dev_t *dev)
     esp_err_t retv = ds3231_set_flag(dev, DS3231_ADDR_STATUS, DS3231_STAT_32KHZ, DS3231_SET);
     if(retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from ds3231_set_flag = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, "ds3231_enable_32khz err from ds3231_set_flag = %d(%s)", retv, esp_err_to_name(retv));
     }
 #endif
 
@@ -441,7 +441,7 @@ esp_err_t ds3231_disable_32khz(i2c_dev_t *dev)
     esp_err_t retv = ds3231_set_flag(dev, DS3231_ADDR_STATUS, DS3231_STAT_32KHZ, DS3231_CLEAR);
     if(retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from ds3231_set_flag = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, "ds3231_disable_32khz err from ds3231_set_flag = %d(%s)", retv, esp_err_to_name(retv));
     }
 #endif
 
@@ -460,7 +460,7 @@ esp_err_t ds3231_enable_squarewave(i2c_dev_t *dev)
     esp_err_t retv = ds3231_set_flag(dev, DS3231_ADDR_CONTROL, DS3231_CTRL_ALARM_INTS, DS3231_CLEAR);
     if(retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from ds3231_set_flag = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, "ds3231_enable_squarewave err from ds3231_set_flag = %d(%s)", retv, esp_err_to_name(retv));
     }
 #endif
 
@@ -479,7 +479,7 @@ esp_err_t ds3231_disable_squarewave(i2c_dev_t *dev)
     esp_err_t retv = ds3231_set_flag(dev, DS3231_ADDR_CONTROL, DS3231_CTRL_ALARM_INTS, DS3231_SET);
     if(retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from ds3231_set_flag = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, "ds3231_disable_squarewave err from ds3231_set_flag = %d(%s)", retv, esp_err_to_name(retv));
     }
 #endif
 
@@ -499,7 +499,7 @@ esp_err_t ds3231_set_squarewave_freq(i2c_dev_t *dev, ds3231_sqwave_freq_t freq)
     esp_err_t retv = ds3231_get_flag(dev, DS3231_ADDR_CONTROL, 0xff, &flag);
     if(retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from ds3231_get_flag = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, "ds3231_set_squarewave_freq err from ds3231_get_flag = %d(%s)", retv, esp_err_to_name(retv));
     }
 #endif
 
@@ -513,7 +513,7 @@ esp_err_t ds3231_set_squarewave_freq(i2c_dev_t *dev, ds3231_sqwave_freq_t freq)
     retv = ds3231_set_flag(dev, DS3231_ADDR_CONTROL, flag, DS3231_REPLACE);
     if(retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from ds3231_set_flag = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, "ds3231_set_squarewave_freq err from ds3231_set_flag = %d(%s)", retv, esp_err_to_name(retv));
     }
 #endif
 
@@ -535,7 +535,7 @@ esp_err_t ds3231_get_squarewave_freq(i2c_dev_t *dev, ds3231_sqwave_freq_t* freq)
     esp_err_t retv = ds3231_get_flag(dev, DS3231_ADDR_CONTROL, 0xff, &flag);
     if(retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from ds3231_set_flag = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, "ds3231_get_squarewave_freq err from ds3231_set_flag = %d(%s)", retv, esp_err_to_name(retv));
     }
 #endif
 
@@ -561,7 +561,7 @@ esp_err_t ds3231_get_raw_temp(i2c_dev_t *dev, int16_t *temp)
     esp_err_t res = i2c_master_transmit_receive(dev->devhandle, &reg, 1, data, 2, -1);
     if(res != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from i2c_master_transmit_receive = %d(%s)", res, esp_err_to_name(res));
+        ESP_LOGE(TAG, "ds3231_get_raw_temp err from i2c_master_transmit_receive = %d(%s)", res, esp_err_to_name(res));
     }
 #endif
 
@@ -612,7 +612,7 @@ esp_err_t ds3231_get_time(i2c_dev_t *dev, struct tm *time)
     esp_err_t res = i2c_master_transmit_receive(dev->devhandle, &reg, 1, &data[0], 7, -1);
     if(res != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from i2c_master_transmit_receive = %d(%s)", res, esp_err_to_name(res));
+        ESP_LOGE(TAG, "ds3231_get_time err from i2c_master_transmit_receive = %d(%s)", res, esp_err_to_name(res));
     }
 #endif
 
@@ -654,7 +654,7 @@ esp_err_t ds3231_set_aging_offset(i2c_dev_t *dev, int8_t age)
     esp_err_t retv = i2c_master_transmit( dev->devhandle, &age_u8, 1, -1);
     if(retv != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from i2c_master_transmit = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGE(TAG, "ds3231_set_aging_offset err from i2c_master_transmit = %d(%s)", retv, esp_err_to_name(retv));
     }
 #endif
     /**
@@ -693,7 +693,7 @@ esp_err_t ds3231_get_aging_offset(i2c_dev_t *dev, int8_t *age)
     esp_err_t res = i2c_master_transmit_receive(dev->devhandle, &reg, 1, &age_u8, 1, -1);
     if(res != ESP_OK)
     {
-        ESP_LOGE(TAG, " err from i2c_master_transmit_receive = %d(%s)", res, esp_err_to_name(res));
+        ESP_LOGE(TAG, "ds3231_get_aging_offset err from i2c_master_transmit_receive = %d(%s)", res, esp_err_to_name(res));
     }
 #endif
     *age = (int8_t) age_u8;
