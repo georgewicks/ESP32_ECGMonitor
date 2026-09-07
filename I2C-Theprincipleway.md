@@ -1,0 +1,3 @@
+# I2C - the principle communication between devices in the Monitor
+This is merely an overview and basic reference.
+**I2C** (Inter-Integrated Circuit) is a very fast method of communicating between a CPU (micrcontroller CPU in this case) and various semiconductor chips over a data line, with another line that supplies a clock signal. The clock signal can be of as a synchronizing method for the transfer of the data. The data is sent in a serial manner. Data that is manipulated by a processor in several byte sized amounts. A single character, a byte, has 8 bits. 

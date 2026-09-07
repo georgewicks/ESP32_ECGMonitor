@@ -1,0 +1,410 @@
+building myst-cli session with API URL: https://api.mystmd.org
+⛔️ /home/gwicks/ESP32-ECGMonitor Error reading file: Error: EISDIR: illegal operation on a directory, read
+🌎 Building Jupyter Book (via myst) site
+⛔️ /home/gwicks/esp-idf-lib/CONTRIBUTING.md:344:239 unknown role: N
+⛔️ /home/gwicks/esp-idf-lib/CONTRIBUTING.md:344:337 unknown role: N
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/CONVERT-ESP-IDF-LIB-CALLS.md in 552 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/README.md in 551 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/TODO.md in 551 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/CHANGELOG.md in 551 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/CONTRIBUTING.md in 550 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/README.md in 550 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/applications/README.md in 550 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/applications/azure_board_apps/README.md in 550 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/applications/azure_board_apps/apps/3d_graphics/README.md in 550 ms.
+⚠️  /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/applications/azure_board_apps/apps/kalman_filter/README.md missing heading depth 3
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/applications/azure_board_apps/apps/kalman_filter/README.md in 551 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/applications/azure_board_apps/graphics/img_to_3d_matrix/example/README.md in 551 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/applications/lyrat_board_app/README.md in 551 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/applications/m5stack_core_s3/apps/3d_graphics/README.md in 551 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/applications/m5stack_core_s3/apps/kalman_filter/README.md in 551 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/applications/spectrum_box_lite/README.md in 551 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/examples/README.md in 551 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/examples/basic_math/README.md in 551 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/examples/conv2d/README.md in 551 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/examples/dotprod/README.md in 551 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/examples/fft/README.md in 551 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/examples/fft4real/README.md in 551 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/examples/fft_window/README.md in 551 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/examples/fir/README.md in 552 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/examples/iir/README.md in 552 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/examples/kalman/README.md in 552 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/examples/matrix/README.md in 552 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/modules/kalman/ekf_imu13states/docs/README.md in 552 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/CONVERT-ESP-IDF-LIB-CALLS.md in 552 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/README.md in 552 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/TODO.md in 552 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/CHANGELOG.md in 553 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/CONTRIBUTING.md in 552 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/README.md in 552 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/applications/README.md in 552 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/applications/azure_board_apps/README.md in 552 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/applications/azure_board_apps/apps/3d_graphics/README.md in 552 ms.
+⚠️  /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/applications/azure_board_apps/apps/kalman_filter/README.md missing heading depth 3
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/applications/azure_board_apps/apps/kalman_filter/README.md in 552 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/applications/azure_board_apps/graphics/img_to_3d_matrix/example/README.md in 553 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/applications/lyrat_board_app/README.md in 553 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/applications/m5stack_core_s3/apps/3d_graphics/README.md in 553 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/applications/m5stack_core_s3/apps/kalman_filter/README.md in 553 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/applications/spectrum_box_lite/README.md in 553 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/examples/README.md in 553 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/examples/basic_math/README.md in 553 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/examples/conv2d/README.md in 553 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/examples/dotprod/README.md in 553 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/examples/fft/README.md in 553 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/examples/fft4real/README.md in 553 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/examples/fft_window/README.md in 553 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/examples/fir/README.md in 554 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/examples/iir/README.md in 554 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/examples/kalman/README.md in 554 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/examples/matrix/README.md in 554 ms.
+📖 Built /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/modules/kalman/ekf_imu13states/docs/README.md in 554 ms.
+📖 Built /home/gwicks/Development/pcf8574/Adafruit_CircuitPython_PCF8574-1.0.17/CODE_OF_CONDUCT.md in 554 ms.
+📖 Built /home/gwicks/esp-idf-lib/CHANGELOG.md in 555 ms.
+📖 Built /home/gwicks/esp-idf-lib/CONTRIBUTING.md in 552 ms.
+📖 Built /home/gwicks/esp-idf-lib/FAQ.md in 549 ms.
+📖 Built /home/gwicks/esp-idf-lib/Metadata.md in 549 ms.
+📖 Built /home/gwicks/esp-idf-lib/Porting.md in 548 ms.
+📖 Built /home/gwicks/esp-idf-lib/README.md in 550 ms.
+📖 Built /home/gwicks/esp-idf-lib/components/bme680/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/components/ccs811/README.md in 543 ms.
+📖 Built /home/gwicks/esp-idf-lib/components/example/README.md in 542 ms.
+📖 Built /home/gwicks/esp-idf-lib/components/ht16k33/README.md in 543 ms.
+📖 Built /home/gwicks/esp-idf-lib/components/led_strip/README.md in 543 ms.
+📖 Built /home/gwicks/esp-idf-lib/components/led_strip_spi/README.md in 543 ms.
+📖 Built /home/gwicks/esp-idf-lib/components/mhz19b/README.md in 543 ms.
+📖 Built /home/gwicks/esp-idf-lib/components/mpu6050/README.md in 543 ms.
+📖 Built /home/gwicks/esp-idf-lib/components/qmp6988/README.md in 543 ms.
+📖 Built /home/gwicks/esp-idf-lib/components/sht3x/README.md in 543 ms.
+📖 Built /home/gwicks/esp-idf-lib/components/sts3x/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/components/veml7700/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/devtools/devtool/templates/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/ads111x/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/ads130e08/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/aht/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/am2320/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/bh1750/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/bh1900nux/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/bme680/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/bmp180/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/bmp280/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/button/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/ccs811/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/dht/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/dps310/altitude/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/dps310/background/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/dps310/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/ds18x20/multi/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/ds18x20/single/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/ds1302/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/ds1307/default/README.md in 545 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/ds3231/default/README.md in 545 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/ds3502/default/README.md in 545 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/esp_idf_lib_helpers/default/README.md in 545 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/example/default/README.md in 545 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/hd44780/i2c/README.md in 545 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/hd44780/i2c_scroll/README.md in 545 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/hd44780/simplest_barometer/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/hdc1000/default/README.md in 543 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/hmc5883l/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/ht16k33/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/hts221/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/hx711/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/i2cdev/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/icm42670/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/icm42670/wake-on-motion/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/impulse_sensor/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/ina219/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/ina260/default/README.md in 544 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/ina3221/default/README.md in 545 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/l3gx/default/README.md in 545 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/lc709203f/default/README.md in 545 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/led_strip/default/README.md in 545 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/led_strip/led_effects/README.md in 545 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/led_strip_spi/default/README.md in 545 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/lib8tion/default/README.md in 545 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/lm75/default/README.md in 545 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/ls7366r/default/README.md in 545 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/lsm303/default/README.md in 545 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/max1704x/default/README.md in 546 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/max7219/7seg/README.md in 546 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/max7219/8x8/README.md in 546 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/max31725/default/README.md in 546 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/max31855/default/README.md in 546 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/max31865/default/README.md in 546 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/mcp23x17/mcp23s17/README.md in 546 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/mcp23x17/mcp23017/README.md in 546 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/mcp342x/default/README.md in 546 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/mcp960x/default/README.md in 546 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/mcp4725/default/README.md in 546 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/mcp9808/default/README.md in 546 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/mcp23008/default/README.md in 546 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/mhz19b/default/README.md in 547 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/mp2660/default/README.md in 547 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/mpu6050/default/README.md in 547 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/ms5611/default/README.md in 547 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/noise/default/README.md in 547 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/pca9557/default/README.md in 547 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/pca9632/default/README.md in 547 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/pca9685/default/README.md in 547 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/pcf8563/default/README.md in 547 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/pcf8575/default/README.md in 547 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/pcf8591/default/README.md in 547 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/qmc5883l/default/README.md in 547 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/qmi8658c/default/README.md in 548 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/qmp6988/default/README.md in 548 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/rda5807m/default/README.md in 548 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/scd4x/default/README.md in 548 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/scd30/default/README.md in 548 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/sgm58031/default/README.md in 548 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/sgm58031/single-shot/README.md in 548 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/sgp40/default/README.md in 548 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/sht3x/default/README.md in 548 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/sht4x/default/README.md in 548 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/si7021/default/README.md in 548 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/sts3x/default/README.md in 548 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/sts21/default/README.md in 548 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/tca9548/default/README.md in 548 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/tda74xx/default/README.md in 548 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/tps63101x/default/README.md in 548 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/tsl2561/default/README.md in 548 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/tsl2591/default/README.md in 548 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/tsl2591/interrupt/README.md in 549 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/tsl4531/default/README.md in 549 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/tsys01/default/README.md in 549 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/ultrasonic/default/README.md in 549 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/veml7700/default/README.md in 549 ms.
+📖 Built /home/gwicks/esp-idf-lib/examples/wiegand/default/README.md in 549 ms.
+📖 Built /home/gwicks/hello_world/README.md in 549 ms.
+📖 Built /home/gwicks/venv/lib/python3.14/site-packages/debugpy/_vendored/pydevd/pydevd_plugins/extensions/README.md in 549 ms.
+📖 Built /home/gwicks/venv/lib/python3.14/site-packages/idna-3.19.dist-info/licenses/LICENSE.md in 549 ms.
+📖 Built /home/gwicks/venv/lib/python3.14/site-packages/jupyter_server/i18n/README.md in 549 ms.
+📖 Built /home/gwicks/venv/lib/python3.14/site-packages/nbconvert/templates/README.md in 549 ms.
+📖 Built /home/gwicks/venv/lib/python3.14/site-packages/nbconvert/templates/skeleton/README.md in 549 ms.
+📖 Built /home/gwicks/venv/lib/python3.14/site-packages/numpy/random/LICENSE.md in 549 ms.
+📖 Built /home/gwicks/venv/lib/python3.14/site-packages/numpy-2.5.2.dist-info/licenses/numpy/_core/src/npysort/x86-simd-sort/LICENSE.md in 549 ms.
+📖 Built /home/gwicks/venv/lib/python3.14/site-packages/numpy-2.5.2.dist-info/licenses/numpy/fft/pocketfft/LICENSE.md in 549 ms.
+📖 Built /home/gwicks/venv/lib/python3.14/site-packages/numpy-2.5.2.dist-info/licenses/numpy/random/LICENSE.md in 550 ms.
+📖 Built /home/gwicks/venv/lib/python3.14/site-packages/numpy-2.5.2.dist-info/licenses/numpy/random/src/distributions/LICENSE.md in 550 ms.
+📖 Built /home/gwicks/venv/lib/python3.14/site-packages/numpy-2.5.2.dist-info/licenses/numpy/random/src/mt19937/LICENSE.md in 550 ms.
+📖 Built /home/gwicks/venv/lib/python3.14/site-packages/numpy-2.5.2.dist-info/licenses/numpy/random/src/pcg64/LICENSE.md in 550 ms.
+📖 Built /home/gwicks/venv/lib/python3.14/site-packages/numpy-2.5.2.dist-info/licenses/numpy/random/src/philox/LICENSE.md in 550 ms.
+📖 Built /home/gwicks/venv/lib/python3.14/site-packages/numpy-2.5.2.dist-info/licenses/numpy/random/src/sfc64/LICENSE.md in 550 ms.
+📖 Built /home/gwicks/venv/lib/python3.14/site-packages/numpy-2.5.2.dist-info/licenses/numpy/random/src/splitmix64/LICENSE.md in 550 ms.
+📖 Built /home/gwicks/venv/lib/python3.14/site-packages/pip/_vendor/idna/LICENSE.md in 551 ms.
+📖 Built /home/gwicks/venv/lib/python3.14/site-packages/pip-26.2.1.dist-info/licenses/src/pip/_vendor/idna/LICENSE.md in 551 ms.
+📖 Built /home/gwicks/venv/lib/python3.14/site-packages/pyparsing/ai/best_practices.md in 551 ms.
+📖 Built /home/gwicks/venv/lib/python3.14/site-packages/pyzmq-27.2.0.dist-info/licenses/LICENSE.md in 550 ms.
+📖 Built /home/gwicks/venv/lib/python3.14/site-packages/scipy/fft/_duccfft/LICENSE.md in 551 ms.
+📖 Built /home/gwicks/venv/lib/python3.14/site-packages/soupsieve-2.9.2.dist-info/licenses/LICENSE.md in 551 ms.
+📖 Built /home/gwicks/venv/lib/python3.14/site-packages/zmq/backend/cffi/README.md in 551 ms.
+⚠️  /home/gwicks/Development/pcf8574/Adafruit_CircuitPython_PCF8574-1.0.17/CODE_OF_CONDUCT.md:84:111 Could not link citation with label "community".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:6:51 Could not link citation with label "jmpmscorp".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:7:79 Could not link citation with label "slimcdk".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:8:71 Could not link citation with label "horsemann07".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:9:82 Could not link citation with label "shuki25".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:10:51 Could not link citation with label "UncleRus".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:13:47 Could not link citation with label "Throows".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:14:46 Could not link citation with label "UncleRus".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:15:81 Could not link citation with label "oisalb".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:16:60 Could not link citation with label "UncleRus".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:17:52 Could not link citation with label "UncleRus".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:18:68 Could not link citation with label "UncleRus".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:21 Could not link citation with label "slimcdk".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:22 Could not link citation with label "Throows".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:23 Could not link citation with label "oisalb".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:24 Could not link citation with label "horsemann07".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:31:54 Could not link citation with label "janveeh".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:32:57 Could not link citation with label "Th3Link".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:33:75 Could not link citation with label "UncleRus".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:36:40 Could not link citation with label "trombik".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:37:57 Could not link citation with label "gaialucas".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:38:53 Could not link citation with label "vaemc".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:39:53 Could not link citation with label "UncleRus".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:40:30 Could not link citation with label "UncleRus".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:41:44 Could not link citation with label "UncleRus".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:42:49 Could not link citation with label "klaasjanhorlings".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:43:52 Could not link citation with label "stvnjns".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:43:65 Could not link citation with label "UncleRus".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:46 Could not link citation with label "gaialucas".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:47 Could not link citation with label "vaemc".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:48 Could not link citation with label "janveeh".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:49 Could not link citation with label "Th3Link".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:50 Could not link citation with label "klaasjanhorlings".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:57:47 Could not link citation with label "dizcza".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:58:42 Could not link citation with label "weslleymfd".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:59:28 Could not link citation with label "trombik".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:62:60 Could not link citation with label "AxelLin".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:63:38 Could not link citation with label "UncleRus".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:64:34 Could not link citation with label "trombik".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:65:40 Could not link citation with label "trombik".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:66:49 Could not link citation with label "UncleRus".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:67:79 Could not link citation with label "AxelLin".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:70 Could not link citation with label "AxelLin".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:71 Could not link citation with label "weslleymfd".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:78:57 Could not link citation with label "jmpmscorp".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:79:42 Could not link citation with label "dizcza".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:82:50 Could not link citation with label "UncleRus".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:83:32 Could not link citation with label "trombik".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:84:63 Could not link citation with label "trombik".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:85:98 Could not link citation with label "UncleRus".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:86:46 Could not link citation with label "UncleRus".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:89 Could not link citation with label "jmpmscorp".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:97:35 Could not link citation with label "dizcza".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:98:48 Could not link citation with label "UncleRus".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:99:95 Could not link citation with label "UncleRus".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:100:44 Could not link citation with label "chudsaviet".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:101:64 Could not link citation with label "trombik".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:102:60 Could not link citation with label "trombik".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:103:44 Could not link citation with label "UncleRus".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:104:29 Could not link citation with label "UncleRus".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:107:61 Could not link citation with label "EldritchJS".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:108:48 Could not link citation with label "UncleRus".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:109:54 Could not link citation with label "UncleRus".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:112 Could not link citation with label "EldritchJS".
+⚠️  /home/gwicks/esp-idf-lib/CHANGELOG.md:113 Could not link citation with label "chudsaviet".
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:7 Linking "possible-contributions" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:8 Linking "submitting-a-bug-report" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:9 Linking "submitting-a-fix" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:10 Linking "writing-documentation" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:11 Linking "suggesting-enhancements" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:12 Linking "promoting-the-project" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:13 Linking "writing-code" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:14 Linking "development-life-cycle" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:15 Linking "creating-an-issue" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:16 Linking "creating-a-feature-branch-in-your-fork-and-develop" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:17 Linking "c-code-style" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:18 Linking "markdown-code-style" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:19 Linking "git-branch-name-convention" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:20 Linking "typical-issues-you-will-face-in-developments" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:21 Linking "writing-a-commit-message" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:22 No target for internal reference "#updating-readmemd" was found.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:23 Linking "creating-a-pull-request" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:24 Linking "licenses" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:25 Linking "acceptable-licenses" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:26 Linking "acceptable-license-for-new-code" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:27 Linking "unacceptable-licenses" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:37 Linking "submitting-a-bug-report" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:38 Linking "submitting-a-fix" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:39 Linking "writing-documentation" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:40 Linking "suggesting-enhancements" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:41 Linking "promoting-the-project" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:42 Linking "writing-code" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:78 Linking "development-life-cycle" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:91 Linking "git-branch-name-convention" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:128 Linking "git-branch-name-convention" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:149 Linking "development-life-cycle" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:194 Linking "git-branch-name-convention" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:209 Linking "writing-a-commit-message" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/CONTRIBUTING.md:491 Linking "acceptable-licenses" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/FAQ.md:5 Linking "how-to-debug-i2c-based-drivers" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/FAQ.md:6 Linking "why-are-semaphores-mutexes-used-in-i2cdev-routines" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/FAQ.md:7 Linking "how-can-i-connect-multiple-i2c-devices" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/FAQ.md:8 Linking "how-can-i-change-frequency-of-i2c-clock-at-default-frequency-my-device-is-unstable-or-not-working-at-all" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/FAQ.md:9 Linking "how-to-use-internal-pull-up-resistors" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/FAQ.md:10 Linking "can-i-use-i2c-device-drivers-from-interrupts" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/FAQ.md:11 Linking "porting-i2c-libs-to-i2cdev" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/FAQ.md:12 No target for internal reference "#my-dht-sensor-doesnt-work-welldoesnt-work-at-all" was found.
+⚠️  /home/gwicks/esp-idf-lib/FAQ.md:13 No target for internal reference "#how-can-i-include-ets_sysh-in-my-code-without-complex-macros-and-remain-compatible-with-different-targets" was found.
+⚠️  /home/gwicks/esp-idf-lib/Metadata.md:7 Linking "purpose" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/Metadata.md:8 Linking "files" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/Metadata.md:9 No target for internal reference "#eilyml" was found.
+⚠️  /home/gwicks/esp-idf-lib/Metadata.md:10 No target for internal reference "#personsyml" was found.
+⚠️  /home/gwicks/esp-idf-lib/Metadata.md:11 No target for internal reference "#groupsyml" was found.
+⚠️  /home/gwicks/esp-idf-lib/Metadata.md:12 No target for internal reference "#targetsyml" was found.
+⚠️  /home/gwicks/esp-idf-lib/Metadata.md:13 Linking "resources" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/Metadata.md:14 Linking "person" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/Metadata.md:15 Linking "target" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/Metadata.md:16 Linking "license" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/Metadata.md:17 Linking "copyright" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/Metadata.md:18 Linking "group" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/Metadata.md:19 Linking "metadata" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/Metadata.md:20 Linking "component" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/Metadata.md:21 Linking "usages-of-metadata-in-the-project" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/Metadata.md:22 Linking "validating-metadata-of-components" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/Metadata.md:23 No target for internal reference "#generating-readmemd" was found.
+⚠️  /home/gwicks/esp-idf-lib/Metadata.md:24 Linking "known-issues" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/Metadata.md:25 Linking "conditional-depends" to an implicit heading reference, best practice is to create an explicit reference.
+   Explicit references do not break when you update the title to a section, they are preferred over using the implicit HTML ID created for headers.
+⚠️  /home/gwicks/esp-idf-lib/components/sht3x/README.md:3:111 Could not link citation with label "gschorcht".
+⚠️  /home/gwicks/esp-idf-lib/components/veml7700/README.md:24:27 Could not link citation with label "3.3V".
+⚠️  /home/gwicks/esp-idf-lib/components/veml7700/README.md:25:36 Could not link citation with label "3.3V".
+⚠️  /home/gwicks/esp-idf-lib/components/veml7700/README.md:26:34 Could not link citation with label "3.3V".
+⚠️  /home/gwicks/venv/lib/python3.14/site-packages/jupyter_server/i18n/README.md:140:46 Could not link citation with label "JCEmmons".
+⛔️ /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/applications/azure_board_apps/apps/3d_graphics/README.md Cannot find image "applications/azure_board_apps/apps/3d_graphics/3d_graphics.gif" in /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/applications/azure_board_apps/apps/3d_graphics
+⛔️ /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/applications/azure_board_apps/apps/kalman_filter/README.md Cannot find image "applications/azure_board_apps/apps/kalman_filter/kalman_filter.gif" in /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/applications/azure_board_apps/apps/kalman_filter
+⛔️ /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/applications/azure_board_apps/apps/3d_graphics/README.md Cannot find image "applications/azure_board_apps/apps/3d_graphics/3d_graphics.gif" in /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/applications/azure_board_apps/apps/3d_graphics
+⛔️ /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/applications/azure_board_apps/apps/kalman_filter/README.md Cannot find image "applications/azure_board_apps/apps/kalman_filter/kalman_filter.gif" in /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/applications/azure_board_apps/apps/kalman_filter
+⛔️ /home/gwicks/esp-idf-lib/examples/button/default/README.md:14 Cannot find image "buttons_example.png?raw=true" in /home/gwicks/esp-idf-lib/examples/button/default
+⛔️ /home/gwicks/esp-idf-lib/examples/hd44780/i2c/README.md:29 Cannot find image "i2c_lcd.png?raw=true" in /home/gwicks/esp-idf-lib/examples/hd44780/i2c
+⛔️ /home/gwicks/esp-idf-lib/examples/hd44780/i2c_scroll/README.md:28 Cannot find image "../hd44780_i2c/i2c_lcd.png?raw=true" in /home/gwicks/esp-idf-lib/examples/hd44780/i2c_scroll
+⛔️ /home/gwicks/esp-idf-lib/examples/mcp23x17/mcp23s17/README.md:12 Cannot find image "mp23s17_example.png?raw=true" in /home/gwicks/esp-idf-lib/examples/mcp23x17/mcp23s17
+⛔️ /home/gwicks/esp-idf-lib/examples/wiegand/default/README.md:17 Cannot find image "wiegand_connection.png?raw=true" in /home/gwicks/esp-idf-lib/examples/wiegand/default
+⛔️ /home/gwicks/esp-idf-lib/examples/button/default/README.md:14 Unsupported image extension ".png?raw=true" may not correctly render.
+⛔️ /home/gwicks/esp-idf-lib/examples/hd44780/i2c/README.md:29 Unsupported image extension ".png?raw=true" may not correctly render.
+⛔️ /home/gwicks/esp-idf-lib/examples/hd44780/i2c_scroll/README.md:28 Unsupported image extension ".png?raw=true" may not correctly render.
+⛔️ /home/gwicks/esp-idf-lib/examples/mcp23x17/mcp23s17/README.md:12 Unsupported image extension ".png?raw=true" may not correctly render.
+⛔️ /home/gwicks/esp-idf-lib/examples/wiegand/default/README.md:17 Unsupported image extension ".png?raw=true" may not correctly render.
+⛔️ /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/applications/azure_board_apps/apps/3d_graphics/README.md Cannot find image "applications/azure_board_apps/apps/3d_graphics/3d_graphics.gif" in /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/applications/azure_board_apps/apps/3d_graphics
+⛔️ /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/applications/azure_board_apps/apps/kalman_filter/README.md Cannot find image "applications/azure_board_apps/apps/kalman_filter/kalman_filter.gif" in /home/gwicks/Development/ESPIDF-ECGMonitor/managed_components/espressif__esp-dsp/applications/azure_board_apps/apps/kalman_filter
+⛔️ /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/applications/azure_board_apps/apps/3d_graphics/README.md Cannot find image "applications/azure_board_apps/apps/3d_graphics/3d_graphics.gif" in /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/applications/azure_board_apps/apps/3d_graphics
+⛔️ /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/applications/azure_board_apps/apps/kalman_filter/README.md Cannot find image "applications/azure_board_apps/apps/kalman_filter/kalman_filter.gif" in /home/gwicks/Development/ESPIDF-ECGMonitor_SAVE/managed_components/espressif__esp-dsp/applications/azure_board_apps/apps/kalman_filter
+⛔️ /home/gwicks/esp-idf-lib/examples/button/default/README.md Cannot find image "buttons_example.png?raw=true" in /home/gwicks/esp-idf-lib/examples/button/default
+⛔️ /home/gwicks/esp-idf-lib/examples/hd44780/i2c/README.md Cannot find image "i2c_lcd.png?raw=true" in /home/gwicks/esp-idf-lib/examples/hd44780/i2c
+⛔️ /home/gwicks/esp-idf-lib/examples/hd44780/i2c_scroll/README.md Cannot find image "../hd44780_i2c/i2c_lcd.png?raw=true" in /home/gwicks/esp-idf-lib/examples/hd44780/i2c_scroll
+⛔️ /home/gwicks/esp-idf-lib/examples/mcp23x17/mcp23s17/README.md Cannot find image "mp23s17_example.png?raw=true" in /home/gwicks/esp-idf-lib/examples/mcp23x17/mcp23s17
+⛔️ /home/gwicks/esp-idf-lib/examples/wiegand/default/README.md Cannot find image "wiegand_connection.png?raw=true" in /home/gwicks/esp-idf-lib/examples/wiegand/default
+📚 Built 193 pages for project in 2.11 s.

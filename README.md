@@ -1,20 +1,29 @@
 # ECGMonitor
-* Low-cost continuous real-time ECG monitor using ESP-IDF
-![ECGMonitor](images/ECG-Flow.jpg)
+* Low-cost continuous real-time ECG monitor using Espressif's ESP32 architecture, along with their ESP-IDF framework. The bulk of the code is in C, and it is accessible from a GitHub repository. We are using cheap, off-the-shelf components that are easily acquired.
+
+Personally, this design came about because of a very serious health crisis that I went through, namely a heart attack. 
+
+* ![ECGMonitor](./images/ECG-Flow.jpg)
+
 * A rough sketch to illustrate how the ECG Monitor system works.
-    * The electrodes (0) are placed on the patient being monitored.
-    * The electrode wire bundle is connected to a AD8232 (1), a heart rate front end.
-    * The signal data from the AD8232 is attached to the ADS1115 (2), a 16-bit analog-to-digital converter.
-    * The digitized data is collected from the I2C serial bus (the wires labeled (4) and (5)), and processed by the ESP32 DevKit microcontroller (3).
-    * The data and analysis is recorded to the MicroSD adapter board (6).
-    * The RTC (Real-time clock (7)) will add time data that is inserted into the MicroSD adapter (6), thus providing time stamped ECG charting for clinical technicians who are monitoring the data.
+    * The electrodes **(0)** are placed on the patient being monitored.
+    * The electrode wire bundle is connected to a AD8232 **(1)**, a heart rate front end.
+    * The signal data from the AD8232 is attached to the ADS1115 **(2)**, a 16-bit analog-to-digital converter.
+    * The digitized data is collected from the I2C serial bus (the wires labeled **(4)** and **(5)**), and processed by the ESP32 DevKit microcontroller **(3)**.
+    * The data and analysis is recorded to the MicroSD adapter board **(6)**.
+    * The RTC (Real-time clock **(7)**) will add time data that is inserted into the MicroSD adapter **(6)**, thus providing time stamped ECG charting for clinical technicians who are monitoring the data.
 
 * The primary hardware components of the project are:
-    - ESP32 DevKit WROOM-32U.
-    - (1) ADS1115 Breakout boards. 16-bit ADC, 4 ADC channels
-    - (4 for a full 12 electrode setup) AD8232 Physiological Monitor.
-    - RTC. Needed for real-time charting updates for time stamping. (DS3231)
-    - MicroSD 8GB Adapter - Recording ECG Traces. (SDMMC)
+    - **ESP32 DevKit WROOM-32U**. (Note, I have recently tried the **ESP32S3**, which is smaller, and that works well)
+        * <img src="./images/small-ESP32S3-sm.jpg" alt="ESP32S3" width="30%">
+    - **(1) ADS1115 Breakout boards. 16-bit ADC, 4 ADC channels**
+        * <img src="./images/ads1115" alt="ADS1115" width="30%">
+    - **(4 are used for a full 12 electrode setup) AD8232 Physiological Monitor**.
+         * <img src="images/ad8232.jpg" alt="AD8232" width="30%">
+    - **RTC. Needed for real-time charting updates for time stamping. (DS3231)**
+         * <img src="./images/DS3231.png" alt="DS3231" width="30%">
+    - **MicroSD 8GB Adapter - Recording ECG Traces. (SPI Mode)**
+         * <img src="./images/microsd-board.JPG" alt="MicroSD board" width="30%">
 
 * The primary software components of the project are:
     * We will be using ESP-IDF, v5.2.7. This will necessitate the use of the I2C_master driver.

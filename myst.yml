@@ -5,12 +5,20 @@ project:
   title: "ECGMonitor Step-by-Step"
   # description:
   toc:
-    - file: index.md
+    - file: README.md
+    - file: I2C-Theprincipleway.md
     - file: page1.md
   # keywords: []
   # authors: []
   github: https://github.com/georgewicks/ESP32_ECGMonitor
   # To autogenerate a Table of Contents, run "jupyter book init --write-toc"
+  exclude:
+    - "managed_components/**"
+    - "esp-idf-lib/**"
+    - "build/**"
+    - ".venv/**"
+  myst_enable_extensions:
+    - html_image
 
 site:
   template: book-theme
