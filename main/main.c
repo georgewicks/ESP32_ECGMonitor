@@ -349,7 +349,9 @@ void adc_acquisition_task(void *pvParameters)
             // if (ads1115_read_reg(ADS1115_CONV_REG, &raw_reading) == ESP_OK) {
             if (ads111x_read_reg(&ECGDev_ads1115, REG_CONVERSION, &raw_reading) == ESP_OK)
             {
+                float   f_val;
                 current_batch.channels[tracking_channel] = (int16_t)raw_reading;
+                f_val = ((float)current_batch.channels[tracking_channel]/32768.0)*4.096;
             }
 
             uint8_t next_channel = (tracking_channel + 1) % 4;

@@ -84,3 +84,13 @@
 
 # 2026-09-04
 * Add more info on Digital Filter design. Put together a workflow description of how engineers design and implement digital filters for signal processing.
+
+# 2026-09-07
+* Created Jupyter Book for the ESP32-ECGMonitor
+* Need to add sections on:
+    * Development of the firmware using the ESP-IDF framework
+        * Show installation of ESP-IDF using the EIM
+        * Show creation of CMakeLists.txt
+            * ADS1115
+            * main
+            * Project CMakeLists.txt

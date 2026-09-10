@@ -2,12 +2,15 @@
 version: 1
 project:
   id: e32e0daa-3b8f-4e03-bb4a-3c2838d6f9e4
-  title: "ECGMonitor Step-by-Step"
+  title: "ESP32-ECGMonitor Lab Guide"
   # description:
   toc:
     - file: README.md
+    - file: ECG_DSP.md
+      children:
+        - file: BasicsOfDSP.md
     - file: I2C-Theprincipleway.md
-    - file: page1.md
+    - file: simplePhenolicPCB.md
   # keywords: []
   # authors: []
   github: https://github.com/georgewicks/ESP32_ECGMonitor
