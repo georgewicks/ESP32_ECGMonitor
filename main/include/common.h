@@ -47,10 +47,10 @@
 
 // OLD
 // Define GPIO mappings for SPI
-#define PIN_NUM_MISO 13
-#define PIN_NUM_MOSI 11
-#define PIN_NUM_CLK  12
-#define PIN_NUM_CS   10
+//#define PIN_NUM_MISO 13
+//#define PIN_NUM_MOSI 11
+//#define PIN_NUM_CLK  12
+//#define PIN_NUM_CS   10
 
 
 #define GPIO_SDMMC_CLK          GPIO_NUM_39
