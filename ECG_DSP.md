@@ -10,7 +10,15 @@ The DSP domain is of particular benefit for the analysis of the ECG recording. W
 * I am using Espressif's ESP-DSP library to optimize the DSP operations on the ESP32 architecture [^2]. There are several modules and examples within this library, and they are quite readable. The most current version of the library is avaialable on GitHub [^3]
 * There are also methods for the ST-Segment, a subject near and dear to my heart. [^4][^5]
 
-
+* The component folder named "QRSDetect" contains AI recommended C functions that implement the various filter methods that are integral to the Pan and Tompkins QRS Detection algorithm.
+    * Google AI recommendations:
+        * components/QRSDetect/G_AI_REC_Deriv.c:        Derivative filter (both integer & floating point)
+        * components/QRSDetect/G_AI_REC_HP_fpver.c      High-pass filter - floating point ver
+        * components/QRSDetect/G_AI_REC_HP_intver.c     High-pass filter - integer ver
+        * components/QRSDetect/G_AI_REC_LP_fpver.c      Low-pass filter - floating point ver
+        * components/QRSDetect/G_AI_REC_LP_intver.c     Low-pass filter - integer ver
+        * components/QRSDetect/G_AI_REC_MWI.c           Moving Window Integrator (both integer & floating point)
+    
 # References
 
 The "Biomedical Digital Signal Processing" textbook is the most thorough and relevant information on DSP, particularly on the Biomedical application of DSP technology. 

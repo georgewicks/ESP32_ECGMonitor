@@ -31,11 +31,6 @@
 #include "common.h"
 #include "ADCCapture.h"
 
-// Define GPIO mappings
-#define PIN_NUM_MISO 13
-#define PIN_NUM_MOSI 11
-#define PIN_NUM_CLK  12
-#define PIN_NUM_CS   10
 
 #define MOUNT_POINT "/sdcard"
 
@@ -43,7 +38,7 @@
 #define PKG_SAMPLES_QRS
 
 
-static const char *TAG = "main";
+static const char *TAG = "main-ECGMon";
 
 extern void     basic_test_loop( void );
 
@@ -52,7 +47,8 @@ extern void     InitI2C(void);
 extern bool     IsADS1115Present(void);
 extern bool     IsDS3231Present(void);
 
-// if we decide to use HTTP, we might need to use this to avoid I2C timeouts
+extern bool     bWifi_Connected; // Global flag to indicate Wi-Fi connection status
+
 SemaphoreHandle_t	xMutex;
 
 i2c_master_bus_handle_t bus_handle;
@@ -243,6 +239,7 @@ static void FindAndInitDevices(void)
         ESP_LOGE(TAG, "ADS1115 not found! Cannot acquire ECG signal data!");
     }
     
+    ESP_LOGI(TAG, "Check for DS3231 ");
     if(IsDS3231Present())
     {
         ESP_LOGI(TAG, "DS3231 found - do the initialization");
@@ -252,6 +249,7 @@ static void FindAndInitDevices(void)
     {
         ESP_LOGE(TAG, "DS3231 not found! - RTC needed for timestamping!");
     }
+    ESP_LOGI(TAG, "end FindAndInitDevices");
 }
 
 /* --------------------------------------------------------------------------------------------- */
@@ -586,6 +584,16 @@ void Setup_ADC_SD(void)
     xTaskCreatePinnedToCore(sd_writer_task, "SD_Write", 4096, NULL, 4, NULL, 1);
 }
 
+void    post_sta_connected(void)
+{
+    fetch_sntp_time();              // ← ADD THIS - starts SNTP and blocks until synced
+    // Now, we can sync up the RTC...
+    sync_ntp_to_ds3231(&DS3231_dev);
+
+    //Init_sdmmc();
+    InitSD_SPI();
+}
+
 void app_main(void)
 {
     int sec_count = 0;
@@ -627,10 +635,21 @@ void app_main(void)
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     wifi_init_sta();
 
+    /*
     fetch_sntp_time();              // ← ADD THIS - starts SNTP and blocks until synced
    
     // Now, we can sync up the RTC...
     sync_ntp_to_ds3231(&DS3231_dev);
+     */
+    ESP_LOGI(TAG," Done with wifi_init_sta ");
+
+    while(bWifi_Connected == false)
+    {
+        ESP_LOGI(TAG,"waiting for STA_CONNECTED...");
+        
+        vTaskDelay(2000/portTICK_PERIOD_MS);
+    }
+    post_sta_connected();
 
     //Init_sdmmc();
     InitSD_SPI();
@@ -665,8 +684,8 @@ void app_main(void)
     {
         // This is a visual way of confirming that the ADC capture is functioning... or not.
         // TODO: Move this to a basic POST test, that can be invoked for testing.
-        // ESP_LOGI(TAG, "Running... SD count = %d, ADC count = %d",sd_signal_count,adc_signal_count);
-        vTaskDelay(1000/portTICK_PERIOD_MS);
+        ESP_LOGI(TAG, "Running... SD count = %d, ADC count = %d",sd_signal_count,adc_signal_count);
+        vTaskDelay(2000/portTICK_PERIOD_MS);
         sec_count++;
         if(sec_count == 60)
         {

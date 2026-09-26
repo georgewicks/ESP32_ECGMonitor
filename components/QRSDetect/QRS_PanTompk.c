@@ -9,6 +9,11 @@
  * 
  */
 
+#include <stdint.h>
+#include <float.h>
+#include <string.h>
+
+#include "esp_dsp.h"
 #include "dsps_biquad.h"
 
 // TODO: put this into a shared common header file
@@ -37,6 +42,9 @@ float lpf_coeffs[5] = {
  esp_err_t QRS_PT_LowPass( float *inputBuff, float *outputBuff, int  sample_count)
  {
 
+    esp_err_t retv = ESP_OK;
+
     dsps_biquad_f32(inputBuff, outputBuff, sample_count, lpf_coeffs, lpf_delay);  
 
+    return retv;
  }

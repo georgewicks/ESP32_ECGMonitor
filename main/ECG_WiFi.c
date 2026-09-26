@@ -30,7 +30,9 @@
 static EventGroupHandle_t s_wifi_event_group;
 #define WIFI_CONNECTED_BIT BIT0
 
-static const char *TAG = "WIFI_SNTP_6.0";
+bool bWifi_Connected = false; // Global flag to indicate Wi-Fi connection status
+
+static const char *TAG = "ECGMon-WIFI";
 
 // Optional callback triggered when SNTP actually syncs the system time
 void time_sync_notification_cb(struct timeval *tv)
@@ -80,14 +82,51 @@ static void event_handler(void* arg, esp_event_base_t event_base,
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         esp_wifi_connect();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
+        wifi_event_sta_disconnected_t *disconn = (wifi_event_sta_disconnected_t *)event_data;
+        ESP_LOGI(TAG, "Wi-Fi disconnected, reason=%d", disconn->reason);
+
         ESP_LOGI(TAG, "Disconnected from AP. Retrying...");
+        bWifi_Connected = false;        
         esp_wifi_connect();
+        xEventGroupClearBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) { // Fixed here
         ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
         ESP_LOGI(TAG, "Successfully acquired IP: " IPSTR, IP2STR(&event->ip_info.ip));
         xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
+        bWifi_Connected = true;
     }
 }
+#define DEFAULT_SCAN_LIST_SIZE 10
+
+static void wifi_scan(void)
+{
+    uint16_t number = DEFAULT_SCAN_LIST_SIZE;
+    wifi_ap_record_t ap_info[DEFAULT_SCAN_LIST_SIZE];
+    uint16_t ap_count = 0;
+    memset(ap_info, 0, sizeof(ap_info));
+
+    //esp_err_t scan_ret = esp_wifi_scan_start(NULL, true);
+    //ESP_LOGI(TAG, "scan_start returned: %s", esp_err_to_name(scan_ret));
+    // esp_wifi_scan_start(NULL, true);  // blocking scan, all channels
+    wifi_scan_config_t scan_config = {
+        .show_hidden = true,
+        .scan_type = WIFI_SCAN_TYPE_ACTIVE,
+        .scan_time.active.min = 100,
+        .scan_time.active.max = 300,
+    };
+    esp_wifi_scan_start(&scan_config, true);
+
+    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_num(&ap_count));
+    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&number, ap_info));
+
+    ESP_LOGI(TAG, "Total APs scanned = %u", ap_count);
+    for (int i = 0; i < number; i++) {
+        ESP_LOGI(TAG, "SSID \t\t%s", ap_info[i].ssid);
+        ESP_LOGI(TAG, "RSSI \t\t%d", ap_info[i].rssi);
+        ESP_LOGI(TAG, "Channel \t\t%d", ap_info[i].primary);
+    }
+}
+
 void wifi_init_sta(void)
 {
     s_wifi_event_group = xEventGroupCreate();
@@ -126,12 +165,19 @@ void wifi_init_sta(void)
             .threshold.authmode = WIFI_AUTH_WPA2_PSK,
         },
     };
-    
+
+    ESP_LOGI(TAG, " **** *** SSID = %s", wifi_config.sta.ssid);
+
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
+    //ESP_ERROR_CHECK(esp_wifi_set_inactive_time(WIFI_IF_STA,20)); // Set inactive time to 20 seconds
+ 
+    
+    // --- Run scan here, before waiting for connection ---
+    wifi_scan();
 
-    ESP_LOGI(TAG, "Wi-Fi Station Initialized. Waiting for connection...");
+    ESP_LOGI(TAG, "Waiting for connection");
 
     // Block here until the event loop confirms we have an IP
     xEventGroupWaitBits(s_wifi_event_group,
@@ -139,6 +185,10 @@ void wifi_init_sta(void)
                         pdFALSE,
                         pdTRUE,
                         portMAX_DELAY);
+
+    ESP_LOGI(TAG, "Connection completed (supposedly)");
+    
+
 }
 
 void do_sntp_app_main(void)

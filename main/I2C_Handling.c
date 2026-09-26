@@ -209,8 +209,10 @@ esp_err_t	InitADS1115(void)
 	// Add these after your existing ADS1115 init:
 	// Set Lo_thresh = 0x0000 and Hi_thresh = 0x8000
 	// This enables ALERT/RDY as conversion-ready output
+	ESP_LOGI(TAG, " about to set threshhold limits");
 	ads111x_write_reg(&ECGDev_ads1115, REG_THRESH_L, 0x0000);
 	ads111x_write_reg(&ECGDev_ads1115, REG_THRESH_H, 0x8000);
+	ESP_LOGI(TAG, " set threshhold limits Done ");
 
 	return retv;
 }

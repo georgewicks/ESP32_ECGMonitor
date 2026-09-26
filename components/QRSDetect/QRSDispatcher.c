@@ -11,6 +11,8 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
+#include <assert.h>
 
 // TODO: Must put into common shared header file!
 
@@ -38,16 +40,16 @@ void  PushToECGProc(ECG_adc_sample_t *curECGptr)
     int     errv;
 
     // Prep channel 0
-    for(i=0;i<<NUM_SAMPLES;i++)
+    for( i=0 ; i<NUM_SAMPLES ; i++)
     {
         PrepBuffer[i] = (float)(curECGptr->samples[0][i]/32768) * FS;
     }
     errv = DoQRSPreProcess(PrepBuffer,NUM_SAMPLES, 0);
 
-    // Prep channel 0
+    // Prep channel 1
     for( i=0 ; i<NUM_SAMPLES ; i++)
     {
-        PrepBuffer[i] = (float)(curECGptr->samples[0][i]/32768) * FS;
+        PrepBuffer[i] = (float)(curECGptr->samples[1][i]/32768) * FS;
     }
     errv = DoQRSPreProcess(PrepBuffer,NUM_SAMPLES, 1);
 
