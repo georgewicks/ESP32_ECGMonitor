@@ -120,11 +120,11 @@ void i2c_master_init(void)
 
 
 	// ESP Docs AI Assistant suggestions
-	// ADS1115 - no clock stretching needed
+	// ADS1115 - no clock stretching needed; 400 kHz fast mode is supported.
 	i2c_device_config_t ads_cfg = {
 		.dev_addr_length = I2C_ADDR_BIT_LEN_7,
 		.device_address = 0x48,
-		.scl_speed_hz = 100000,
+		.scl_speed_hz = 400000,
 		.scl_wait_us = 5000,					// as per Google AI  2026-10-01
 	};
 	i2c_master_bus_add_device(bus_handle, &ads_cfg, &ads1115_handle);
@@ -318,12 +318,13 @@ esp_err_t InitADS1115(void)
                                   ADS111X_ADDR_GND, I2C_NUM, 0, 0);
         ESP_LOGI(TAG, "ads111x_init_desc = %d(%s)", retv, esp_err_to_name(retv));
 
-        // Set thresholds for ALERT/RDY conversion-ready mode
+        // Enable ALERT/RDY conversion-ready (RDY) mode:
+        //   Lo_thresh MSB = 0 (0x0000), Hi_thresh MSB = 1 (0x8000).
         ESP_LOGI(TAG, "Setting low threshold...");
         ads111x_set_comp_low_thresh(&ECGDev_ads1115, 0x0000);
 
         ESP_LOGI(TAG, "Setting high threshold...");
-        ads111x_set_comp_high_thresh(&ECGDev_ads1115, 0x7FFF);
+        ads111x_set_comp_high_thresh(&ECGDev_ads1115, 0x8000);
 
         // Readback verification
         uint16_t lo = 0, hi = 0;

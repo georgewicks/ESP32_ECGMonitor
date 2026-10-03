@@ -145,7 +145,7 @@ static esp_err_t read_conf_bits(i2c_dev_t *dev, uint8_t offs, uint16_t mask,
 {
     CHECK_ARG(dev);
     uint16_t val;
-    ESP_LOGI(TAG, "read_conf_bits");
+    ESP_LOGD(TAG, "read_conf_bits");
 
 #ifdef  USE_PURE_UNCLE_RUS
     I2C_DEV_TAKE_MUTEX(dev);
@@ -171,7 +171,7 @@ static esp_err_t write_conf_bits(i2c_dev_t *dev, uint16_t val, uint8_t offs,
 {
     CHECK_ARG(dev);
     uint16_t old;
-    ESP_LOGI(TAG, "write_conf_bits");
+    ESP_LOGD(TAG, "write_conf_bits");
 
 #ifdef  USE_PURE_UNCLE_RUS
     I2C_DEV_TAKE_MUTEX(dev);
@@ -267,14 +267,14 @@ esp_err_t ads111x_is_busy(i2c_dev_t *dev, bool *busy)
 
 esp_err_t ads111x_start_conversion(i2c_dev_t *dev)
 {
-    ESP_LOGI(TAG, "ads111x_start_conversion");
+    ESP_LOGD(TAG, "ads111x_start_conversion");
     return write_conf_bits(dev, 1, OS_OFFSET, OS_MASK);
 }
 
 esp_err_t ads111x_get_value(i2c_dev_t *dev, int16_t *value)
 {
     CHECK_ARG(dev && value);
-    ESP_LOGI(TAG, "ads111x_get_value");
+    ESP_LOGD(TAG, "ads111x_get_value");
 
 #ifdef  USE_PURE_UNCLE_RUS
     I2C_DEV_TAKE_MUTEX(dev);
@@ -294,7 +294,7 @@ esp_err_t ads111x_get_value(i2c_dev_t *dev, int16_t *value)
 esp_err_t ads101x_get_value(i2c_dev_t *dev, int16_t *value)
 {
     CHECK_ARG(dev && value);
-    ESP_LOGI(TAG, "ads101x_get_value");
+    ESP_LOGD(TAG, "ads101x_get_value");
 
 #ifdef  USE_PURE_UNCLE_RUS
     I2C_DEV_TAKE_MUTEX(dev);

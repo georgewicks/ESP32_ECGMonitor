@@ -113,10 +113,10 @@ static SemaphoreHandle_t ads_rdy_semaphore = NULL;
 // bitfield, and then write it back out to the configuration register. Using an atomic constant write operation makes the call to the 
 // ADS1115 fast and efficient, which is good goal, since we want to insure that the capture process is time intensive.
 static const uint16_t ads_mux_config[4] = {
-    0xC4E8, // Ch 0, Single-Shot, 860 SPS, Alert Active Low
-    0xD4E8, // Ch 1, Single-Shot, 860 SPS, Alert Active Low
-    0xE4E8, // Ch 2, Single-Shot, 860 SPS, Alert Active Low
-    0xF4E8  // Ch 3, Single-Shot, 860 SPS, Alert Active Low
+    0xC5E0, // Ch 0, Single-Shot, 860 SPS, Active Low, COMP_QUE=00 (RDY pin enabled)
+    0xD5E0, // Ch 1, Single-Shot, 860 SPS, Active Low, COMP_QUE=00 (RDY pin enabled)
+    0xE5E0, // Ch 2, Single-Shot, 860 SPS, Active Low, COMP_QUE=00 (RDY pin enabled)
+    0xF5E0  // Ch 3, Single-Shot, 860 SPS, Active Low, COMP_QUE=00 (RDY pin enabled)
 };
 
 // Global wall clock shared safely via thread updates
@@ -345,7 +345,7 @@ static uint8_t bcd_to_dec(uint8_t val) {
     return ((val / 16) * 10) + (val % 16);
 }
 
-static uint32_t isr_count = 0;              // as per ESP Docs AI Assistant
+static volatile uint32_t isr_count = 0;     // written in ISR, read in main context
 
 static void IRAM_ATTR ads_gpio_isr_handler(void* arg) {
     isr_count++;
@@ -375,7 +375,7 @@ void    Check_ADS1115_Regs( void )
     // Add this readback immediately after the write:
     uint16_t config_val = 0;
     ads111x_read_reg(&ECGDev_ads1115, REG_CONFIG, &config_val);
-    ESP_LOGI(TAG, "Config AFTER write = 0x%04X (expected 0xC4E8)", config_val);
+    ESP_LOGI(TAG, "Config AFTER write = 0x%04X (expected 0xC5E0)", config_val);
 
     // Also verify threshold registers:
     uint16_t lo = 0, hi = 0;
@@ -396,9 +396,6 @@ void    Check_ADS1115_Regs_2(void)
 }
 
 #endif
-
-const TickType_t delayT = (3000 / portTICK_PERIOD_MS);
-
 
 // This is the AI recommendation: some slight changes in order to implement the code here.
 // CORE 0: High-Priority ECG Acquisition
@@ -449,19 +446,14 @@ void adc_acquisition_task(void *pvParameters)
 
     while (1)
     {
-        ESP_LOGI(TAG, "Waiting for ads_rdy_semaphore...");
-        if (xSemaphoreTake(ads_rdy_semaphore, portMAX_DELAY) == pdTRUE)
+        if (xSemaphoreTake(ads_rdy_semaphore, pdMS_TO_TICKS(2000)) == pdTRUE)
         {
             adc_signal_count++;
-            ESP_LOGI(TAG, "Semaphore taken! adc_signal_count = %lu", adc_signal_count);
 
-            // if (ads1115_read_reg(ADS1115_CONV_REG, &raw_reading) == ESP_OK) {
             retv = ads111x_read_reg(&ECGDev_ads1115, REG_CONVERSION, &raw_reading);
             if (retv == ESP_OK)
             {
-                float f_val;
                 current_batch.channels[tracking_channel] = (int16_t)raw_reading;
-                f_val = ((float)current_batch.channels[tracking_channel] / 32768.0) * 4.096;
             }
             else
             {
@@ -487,13 +479,12 @@ void adc_acquisition_task(void *pvParameters)
         }
         else
         {
-            // This fires if no interrupt received within 2 seconds
-            ESP_LOGW(TAG, "Timeout waiting for ALERT/RDY interrupt on GPIO 6!");
-            ESP_LOGW(TAG, "adc_signal_count = %lu", adc_signal_count);
-            uint16_t lo = 0, hi = 0;
-            ads111x_read_reg(&ECGDev_ads1115, 0x02, &lo);
-            ads111x_read_reg(&ECGDev_ads1115, 0x03, &hi);
-            ESP_LOGI(TAG, "Read of Thresh: Lo=0x%04X Hi=0x%04X", lo, hi);
+            // No ALERT/RDY interrupt within 2 seconds: re-prime a conversion so the
+            // capture loop can recover if the ready pin ever stalls.
+            ESP_LOGW(TAG, "Timeout waiting for ALERT/RDY interrupt on GPIO %d!", ADS_ALERT_GPIO);
+            ESP_LOGW(TAG, "adc_signal_count = %lu, isr_count = %lu",
+                     (unsigned long)adc_signal_count, (unsigned long)isr_count);
+            ads111x_write_reg(&ECGDev_ads1115, REG_CONFIG, ads_mux_config[tracking_channel]);
         }
     }
 }
@@ -672,10 +663,11 @@ void Setup_ADC_SD(void)
     gpio_config_t io_conf = {
         .intr_type = GPIO_INTR_NEGEDGE,
         .pin_bit_mask = (1ULL << ADS_ALERT_GPIO),
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,    // No pull-down needed
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
         .mode = GPIO_MODE_INPUT,
-        //.pull_up_en = GPIO_PULLUP_ENABLE
-        .pull_up_en = GPIO_PULLUP_DISABLE
+        // ALERT/RDY is open-drain active-low; pull up so the line idles high and
+        // only pulses low when a conversion completes.
+        .pull_up_en = GPIO_PULLUP_ENABLE
     };
     gpio_config(&io_conf);
 
