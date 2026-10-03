@@ -32,10 +32,21 @@
 #include "driver/i2c_master.h"
 #endif
 
+/**
+ * @brief The following are the I2C device addresses that we will use
+ * 
+ */
+#define ADS111X_ADDR        0x48 //!< I2C device address with ADDR pin connected to ground
+#define PCF8574_ADDR		0x27
+#define DS3231_EEPROM_ADDR  0x57 //!< I2C address
+#define DS3231_ADDR         0x68 //!< I2C address
+
 // I2C GPIO 
 #define GPIO_I2C_SDA            GPIO_NUM_4
 #define GPIO_I2C_SCL            GPIO_NUM_5
-#define GPIO_I2C_ALERT          GPIO_NUM_6
+//#define GPIO_I2C_ALERT          GPIO_NUM_6
+#define GPIO_I2C_ALERT          GPIO_NUM_21
+#define ADS_ALERT_GPIO          GPIO_I2C_ALERT
 
 #define GPIO_I2C_PCF8574_INT    GPIO_NUM_7
 

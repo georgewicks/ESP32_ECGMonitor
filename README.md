@@ -24,7 +24,7 @@ The following is a very rough sketch of the ECG system. NOTE: the drawing reflec
         * <img src="./images/ads1115" alt="ADS1115" width="30%">
     - **(4 are used for a full 12 electrode setup) AD8232 Physiological Monitor**.
          * <img src="images/ad8232.jpg" alt="AD8232" width="30%">
-    - **RTC. Needed for real-time charting updates for time stamping. (DS3231)**
+    - **RTC. Needed for real-time charting updates for time stamping. (DS3231). In addition, the board also has a AT24C32 which will be used as storage for a configuration file**
          * <img src="./images/DS3231.png" alt="DS3231" width="30%">
     - **MicroSD 8GB Adapter - Recording ECG Traces. (SPI Mode)**
          * <img src="./images/microsd-board.JPG" alt="MicroSD board" width="30%">

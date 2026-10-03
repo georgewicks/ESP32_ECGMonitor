@@ -37,7 +37,6 @@
 #define DS3231_I2C_ADDR             0x68
 #define DS3231_TIME_REG             0x00
 
-#define ADS_ALERT_GPIO              6
 #define ESP_INTR_FLAG_DEFAULT       0
 
 /**

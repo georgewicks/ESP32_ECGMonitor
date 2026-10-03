@@ -31,17 +31,32 @@
 #include "common.h"
 #include "ADCCapture.h"
 
+// For the configuration file on the AT24C32, located on the RTC board
+#include "i2c_eeprom.h"
 
 #define MOUNT_POINT "/sdcard"
 
 #define TEST_ECG_CSV
 #define PKG_SAMPLES_QRS
 
+/**
+ * @brief Component and System testing
+ * 
+ */
+#define SYSTEST             (true)
+#define ADS1115_TEST        (true)
+#define DS3231_TEST         (false)
+#define PCF8574_TEST        (false)
+#define SD_TEST             (false)
+bool    bTestSysComponents = SYSTEST;
+bool    bEnableADS1115 = ADS1115_TEST;
+bool    bEnableDS3231 = DS3231_TEST;
+bool    bEnableF8574 = PCF8574_TEST;
+bool    bEnableSD = SD_TEST;
 
 static const char *TAG = "main-ECGMon";
 
 extern void     basic_test_loop( void );
-
 extern void     i2c_master_init(void);
 extern void     InitI2C(void);
 extern bool     IsADS1115Present(void);
@@ -52,7 +67,16 @@ extern bool     bWifi_Connected; // Global flag to indicate Wi-Fi connection sta
 SemaphoreHandle_t	xMutex;
 
 i2c_master_bus_handle_t bus_handle;
+
+// Device handles - one per device
+extern i2c_master_dev_handle_t ads1115_handle;  // 0x48
+extern i2c_master_dev_handle_t gpio_exp_handle; // 0x27  PCF8574
+extern i2c_master_dev_handle_t eeprom_handle;   // 0x57
+extern i2c_master_dev_handle_t rtc_handle;      // 0x68
+
+#ifdef  OLDER
 i2c_master_dev_handle_t dev_handle;
+#endif
 
 extern esp_err_t    ads111x_read_reg( i2c_dev_t *dev, uint8_t reg, uint16_t *val);
 extern esp_err_t    ads111x_write_reg(i2c_dev_t *dev, uint8_t reg, uint16_t val);
@@ -78,8 +102,6 @@ int     ECG_Buff_indicator = REC_PING;
 
 #define ECG_REC_MAX     (215)
 
-
-
 static QueueHandle_t adc_queue = NULL;
 static SemaphoreHandle_t ads_rdy_semaphore = NULL;
 
@@ -100,6 +122,12 @@ static const uint16_t ads_mux_config[4] = {
 // Global wall clock shared safely via thread updates
 // static volatile rtc_time_t global_wall_clock = {0};
 static volatile struct tm  global_wall_clock = {0};
+
+
+#define MY_BLINK_PIN GPIO_NUM_17
+
+
+/* ------------------------------------------------------------------------ */
 
 static void     do_restart(void)
 {
@@ -148,6 +176,50 @@ static void     do_chip_info(void)
 }
 
 /* -------------------------------------------------------------------------------------------------------------- */
+/**
+ * @brief Configuration File Handling. We will use the AT24C32 on the RTC board. See the README.md for info  
+ * 
+ */
+
+#define CFG_LENGTH      (1024)
+
+void    Init_EEPROM(void)
+{
+    ESP_LOGI(TAG, "%s called", __func__);
+
+    i2c_eeprom_config_t eeprom_config = {
+        .eeprom_device.scl_speed_hz = 100000,
+        .eeprom_device.device_address = 0x57, // matches your scan
+        .addr_wordlen = 2,                    // AT24C32 uses 16-bit addressing
+        //.page_size = 32,                      // AT24C32 page size
+        .write_time_ms = 10,                  // typical AT24C32 write cycle
+    };
+
+    i2c_eeprom_handle_t eeprom_handle;
+    ESP_ERROR_CHECK(i2c_eeprom_init(bus_handle, &eeprom_config, &eeprom_handle));
+
+ 
+    uint32_t block_addr = 0x0000;
+    uint8_t buf[CFG_LENGTH];
+    for (int i = 0; i < CFG_LENGTH; i++) {
+        buf[i] = i;
+    }
+    uint8_t read_buf[CFG_LENGTH];
+
+    ESP_ERROR_CHECK(i2c_eeprom_read(eeprom_handle, block_addr, read_buf, CFG_LENGTH));
+
+    ESP_LOGI(TAG," CFG contents: ");
+    for (int i = 0; i < 4; i++) {
+        printf("%02X",read_buf[i]);
+    }
+    printf("\n");
+    ESP_LOGI(TAG, "... done");
+
+  
+}
+
+
+/* -------------------------------------------------------------------------------------------------------------- */
 
 /**
  * @brief For handling the MicroSD card adapter in SPI mode.
@@ -159,6 +231,12 @@ void    InitSD_SPI(void)
     esp_err_t ret;
 
     ESP_LOGI(TAG, "%s: called", __func__);
+
+    if(bEnableSD == false)
+    {
+        ESP_LOGI(TAG, "MicroSD is not enabled! -- exiting");
+        return;
+    }
 
     // 1. Setup VFS and SD Card configuration
     esp_vfs_fat_sdmmc_mount_config_t mount_config = {
@@ -244,6 +322,7 @@ static void FindAndInitDevices(void)
     {
         ESP_LOGI(TAG, "DS3231 found - do the initialization");
         InitDS3231();
+        //Init_EEPROM();
     }
     else
     {
@@ -265,12 +344,23 @@ static void FindAndInitDevices(void)
 static uint8_t bcd_to_dec(uint8_t val) {
     return ((val / 16) * 10) + (val % 16);
 }
+
+static uint32_t isr_count = 0;              // as per ESP Docs AI Assistant
+
 static void IRAM_ATTR ads_gpio_isr_handler(void* arg) {
+    isr_count++;
+
+    gpio_set_level(MY_BLINK_PIN, 1);
+
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     xSemaphoreGiveFromISR(ads_rdy_semaphore, &xHigherPriorityTaskWoken);
     if (xHigherPriorityTaskWoken) {
         portYIELD_FROM_ISR();
-    }
+    }   
+    
+
+    //gpio_set_level(MY_BLINK_PIN, 0);
+
 }
 
 volatile  uint32_t  adc_signal_count = 0;                   // count of ADC semaphore signals - ADC ISR gives the semaphore
@@ -307,6 +397,9 @@ void    Check_ADS1115_Regs_2(void)
 
 #endif
 
+const TickType_t delayT = (3000 / portTICK_PERIOD_MS);
+
+
 // This is the AI recommendation: some slight changes in order to implement the code here.
 // CORE 0: High-Priority ECG Acquisition
 void adc_acquisition_task(void *pvParameters) 
@@ -316,6 +409,13 @@ void adc_acquisition_task(void *pvParameters)
     uint16_t raw_reading = 0;
     esp_err_t   retv;
 
+    if(bEnableADS1115 == false)
+    {
+        ESP_LOGI(TAG, "ADS1115 is not enabled! -- deleting/exiting task");
+        vTaskDelete(NULL);
+        return;
+    }
+ 
     // ECG sample handling
     curECGptr = &ECGPing;       // Kick off with the Ping Buffer
     int ESampCnt = 0;
@@ -330,43 +430,70 @@ void adc_acquisition_task(void *pvParameters)
         ESP_LOGE(TAG, "Error from ads111x_write_reg = %d(%s)", retv, esp_err_to_name(retv));
         ESP_LOGE(TAG, " what was supposedly written to the config register = %X", ads_mux_config[tracking_channel]);
     }
+    else
+    {
+        ESP_LOGI(TAG, "Initial config write OK, value = 0x%04X", ads_mux_config[tracking_channel]);
+        // diag requested from ESP Docs AI
+        uint16_t cfg_readback = 0;
+        ads111x_read_reg(&ECGDev_ads1115, REG_CONFIG, &cfg_readback);
+        ESP_LOGI(TAG, "Config readback after mux write = 0x%04X", cfg_readback);
+        uint16_t lo = 0, hi = 0;
+        ads111x_read_reg(&ECGDev_ads1115, 0x02, &lo);
+        ads111x_read_reg(&ECGDev_ads1115, 0x03, &hi);
+        ESP_LOGI(TAG, "Thresh after mux write: Lo=0x%04X Hi=0x%04X", lo, hi);
+    }
 
 #ifdef AI_DEBUG
     Check_ADS1115_Regs();
 #endif
 
-    while (1) {
-
-#ifdef AI_DEBUG
-    Check_ADS1115_Regs_2(void);
-#endif
-        if (xSemaphoreTake(ads_rdy_semaphore, portMAX_DELAY) == pdTRUE) 
+    while (1)
+    {
+        ESP_LOGI(TAG, "Waiting for ads_rdy_semaphore...");
+        if (xSemaphoreTake(ads_rdy_semaphore, portMAX_DELAY) == pdTRUE)
         {
             adc_signal_count++;
+            ESP_LOGI(TAG, "Semaphore taken! adc_signal_count = %lu", adc_signal_count);
 
             // if (ads1115_read_reg(ADS1115_CONV_REG, &raw_reading) == ESP_OK) {
-            if (ads111x_read_reg(&ECGDev_ads1115, REG_CONVERSION, &raw_reading) == ESP_OK)
+            retv = ads111x_read_reg(&ECGDev_ads1115, REG_CONVERSION, &raw_reading);
+            if (retv == ESP_OK)
             {
-                float   f_val;
+                float f_val;
                 current_batch.channels[tracking_channel] = (int16_t)raw_reading;
-                f_val = ((float)current_batch.channels[tracking_channel]/32768.0)*4.096;
+                f_val = ((float)current_batch.channels[tracking_channel] / 32768.0) * 4.096;
+            }
+            else
+            {
+                ESP_LOGE(TAG, " bad conversion! %d(%s)", retv, esp_err_to_name(retv));
             }
 
             uint8_t next_channel = (tracking_channel + 1) % 4;
 
-            if (tracking_channel == 3) {
+            if (tracking_channel == 3)
+            {
                 // High-precision microsecond hardware timer stamp for ECG baseline alignment
                 current_batch.micro_timestamp = esp_timer_get_time();
                 xQueueSend(adc_queue, &current_batch, 0);
             }
 
             tracking_channel = next_channel;
-    
+
             retv = ads111x_write_reg(&ECGDev_ads1115, REG_CONFIG, ads_mux_config[tracking_channel]);
             if (retv != ESP_OK)
             {
                 ESP_LOGE(TAG, "Error from ads111x_write_reg = %d(%s)", retv, esp_err_to_name(retv));
             }
+        }
+        else
+        {
+            // This fires if no interrupt received within 2 seconds
+            ESP_LOGW(TAG, "Timeout waiting for ALERT/RDY interrupt on GPIO 6!");
+            ESP_LOGW(TAG, "adc_signal_count = %lu", adc_signal_count);
+            uint16_t lo = 0, hi = 0;
+            ads111x_read_reg(&ECGDev_ads1115, 0x02, &lo);
+            ads111x_read_reg(&ECGDev_ads1115, 0x03, &hi);
+            ESP_LOGI(TAG, "Read of Thresh: Lo=0x%04X Hi=0x%04X", lo, hi);
         }
     }
 }
@@ -376,36 +503,6 @@ void adc_acquisition_task(void *pvParameters)
  * 
  */
 
-#if 0
-// Relevant include files already put in..
-
-#include <string.h>
-#include <time.h>
-#include <sys/time.h>
-#include "esp_netif_sntp.h"
-#include "esp_sntp.h"
-#include "esp_log.h"
-#include "ds3231.h" // Assuming an external component like esp-idf-ds3231
-
-static const char *TAG = "time_sync";
-#endif
-
-#if 0
-// Initialize SNTP to fetch internet time
-void initialize_sntp(void)
-{
-    ESP_LOGI(TAG, "Initializing SNTP");
-    if (esp_sntp_enabled())
-    {
-        esp_sntp_stop(); // Safely shuts down lwIP SNTP client
-    }
-
-    // Now safe to reconfigure without crashing
-    esp_sntp_setoperatingmode(ESP_SNTP_OPMODE_POLL);
-    esp_sntp_setservername(0, "new.pool.ntp.org");
-    esp_sntp_init();
-}
-#endif
 
 // Main sync routine
 void sync_ntp_to_ds3231(i2c_dev_t *dev)
@@ -488,25 +585,42 @@ void sd_writer_task(void *pvParameters) {
     // rtc_time_t      local_clock_copy;
     struct tm       local_clock_copy;
     esp_err_t       retv;
-    ESP_LOGI(TAG, "%s: called", __func__);
 
+    ESP_LOGI(TAG, "%s: called", __func__);
+    if(bEnableSD == false)
+    {
+        ESP_LOGI(TAG, "MicroSD is not enabled! -- deleting/exiting task");
+        vTaskDelete(NULL);
+        return;
+    }
+ 
     // Seed the initial wall clock
     //ds3231_read_time(&local_clock_copy);
-    retv = ds3231_get_time( &DS3231_dev, &local_clock_copy);
-    global_wall_clock = local_clock_copy;
+    if(bEnableDS3231) {
+        retv = ds3231_get_time( &DS3231_dev, &local_clock_copy);
+        global_wall_clock = local_clock_copy;
+    }
+    else
+    {
+        ESP_LOGI(TAG, "%s: ** DS3231 is not enabled", __func__);
+    }
 
     while (1) {
         // Safe RTC Polling: Only check the physical chip once every 1000ms
         if ((xTaskGetTickCount() - last_rtc_check) > pdMS_TO_TICKS(1000)) {
-            retv = ds3231_get_time(&DS3231_dev, &local_clock_copy);
-            if (retv == ESP_OK) {
-                global_wall_clock = local_clock_copy;
-            }
-            else
+            if (bEnableDS3231)
             {
-                ESP_LOGE(TAG,"ds3232_get_time error = %d(%s)", retv, esp_err_to_name(retv));
+                retv = ds3231_get_time(&DS3231_dev, &local_clock_copy);
+                if (retv == ESP_OK)
+                {
+                    global_wall_clock = local_clock_copy;
+                }
+                else
+                {
+                    ESP_LOGE(TAG, "ds3232_get_time error = %d(%s)", retv, esp_err_to_name(retv));
+                }
+                last_rtc_check = xTaskGetTickCount();
             }
-            last_rtc_check = xTaskGetTickCount();
         }
 
         // Pull incoming high-speed ECG data from queue
@@ -543,7 +657,14 @@ void Setup_ADC_SD(void)
 {
     esp_err_t   retv;
 
+
     ESP_LOGI(TAG, "%s: called", __func__);
+    if(bEnableADS1115 == false)
+    {
+        ESP_LOGI(TAG,"%s: ADS1115 is not enabled! -- exiting", __func__);    
+    }
+
+    ESP_LOGI(TAG, " ADS_ALERT_GPIO = %d", ADS_ALERT_GPIO );
     // The following items were all suggestions from Google AI (see docs/AI-assisted-circuit-and-SW-design)
     // We are going to setup the ADS1115 to generate the ALERT/RDY signal when an ADC capture is ready to 
     // be acquired. This eliminates polling by letting the chip generate an interrupt when a sample is ready
@@ -551,8 +672,10 @@ void Setup_ADC_SD(void)
     gpio_config_t io_conf = {
         .intr_type = GPIO_INTR_NEGEDGE,
         .pin_bit_mask = (1ULL << ADS_ALERT_GPIO),
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,    // No pull-down needed
         .mode = GPIO_MODE_INPUT,
-        .pull_up_en = GPIO_PULLUP_ENABLE
+        //.pull_up_en = GPIO_PULLUP_ENABLE
+        .pull_up_en = GPIO_PULLUP_DISABLE
     };
     gpio_config(&io_conf);
 
@@ -590,8 +713,10 @@ void    post_sta_connected(void)
     // Now, we can sync up the RTC...
     sync_ntp_to_ds3231(&DS3231_dev);
 
+    // WOW! This is wrong!!! I believe some of this did come 
+    // from AI recs, will need to go back over sometime.
     //Init_sdmmc();
-    InitSD_SPI();
+    //   InitSD_SPI();
 }
 
 void app_main(void)
@@ -609,6 +734,7 @@ void app_main(void)
     }
 
     InitI2C();
+    
     //Initialize NVS
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -630,7 +756,14 @@ void app_main(void)
     ESP_LOGI(TAG, "Init the PCF8574");
     pcf8574_dev_t pcf_dev;
     ESP_ERROR_CHECK(pcf8574_init(bus_handle, 0x20, &pcf_dev));
-    
+
+
+    // change the order of initializations - ruling out problems regarding the uSD 
+    InitSD_SPI();
+
+    // unscientific hunch, but putting in a slight delay to insure synchronization
+    vTaskDelay(200/portTICK_PERIOD_MS);
+   
     // Initialize WiFi - we need WiFi enabled in order to do NTP synchronization.
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     wifi_init_sta();
@@ -651,8 +784,21 @@ void app_main(void)
     }
     post_sta_connected();
 
-    //Init_sdmmc();
-    InitSD_SPI();
+    // Define the configuration structure
+    gpio_config_t io_conf = {
+        .pin_bit_mask = (1ULL << MY_BLINK_PIN), // Bit mask for the pin
+        .mode = GPIO_MODE_OUTPUT,               // Set as output mode
+        .pull_up_en = GPIO_PULLUP_DISABLE,      // Disable pull-up
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,  // Disable pull-down
+        .intr_type = GPIO_INTR_DISABLE          // Disable interrupts
+    };
+
+    // 1. Apply the configuration
+    gpio_config(&io_conf);
+
+
+    //
+    //InitSD_SPI();
 
     // Setup the foundation for the ADC and the MicroSD writer
     Setup_ADC_SD();
@@ -684,7 +830,7 @@ void app_main(void)
     {
         // This is a visual way of confirming that the ADC capture is functioning... or not.
         // TODO: Move this to a basic POST test, that can be invoked for testing.
-        ESP_LOGI(TAG, "Running... SD count = %d, ADC count = %d",sd_signal_count,adc_signal_count);
+        ESP_LOGI(TAG, "Running... SD count = %d, ADC count = %d  ISR count = %lu",sd_signal_count,adc_signal_count,isr_count);
         vTaskDelay(2000/portTICK_PERIOD_MS);
         sec_count++;
         if(sec_count == 60)

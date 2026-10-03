@@ -131,9 +131,9 @@ esp_err_t ads111x_write_reg(i2c_dev_t *dev, uint8_t reg, uint16_t val)
 
     // ESP_LOGI(TAG, "ads111x_write_reg");
 
-    if ((res = i2c_master_transmit(dev->devhandle, buf, sizeof(buf), -1)) != ESP_OK)
+    if ((res = i2c_master_transmit(dev->devhandle, buf, sizeof(buf), 1000)) != ESP_OK)
     {
-        ESP_LOGE(TAG, "Could not write 0x%04x to register 0x%02x", val, reg);
+        ESP_LOGE(TAG, "Could not write 0x%04x to register 0x%02x Error=%d (%s)", val, reg, res, esp_err_to_name(res));
         return res;
     }
 
@@ -229,6 +229,9 @@ esp_err_t ads111x_init_desc(i2c_dev_t *dev, i2c_master_dev_handle_t devhandle,ui
     dev->port = port;
     dev->addr = addr;
     dev->devhandle = devhandle;
+
+    ESP_LOGI(TAG, "ADS1115 devhandle = %p", (void*)dev->devhandle); 
+
     // TODO: Check into dev->cfg.master.clk_speed = I2C_FREQ_HZ; !!
 #ifdef  USE_PURE_UNCLE_RUS
     dev->cfg.sda_io_num = sda_gpio;

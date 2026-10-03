@@ -53,28 +53,6 @@
 #include "spoof_i2cdev.h"
 #endif
 
-/*
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-#include <esp_err.h>
-#include "esp_system.h"
-#include "esp_log.h"
-
-#ifdef  LEGACY_I2C
-#include "driver/i2c.h"
-#else
-#include "driver/i2c_master.h"
-#endif
-*/
-
-/*
-typedef struct
-{
-    i2c_port_t                  port;                 //!< I2C port number (e.g., I2C_NUM_0)
-    uint16_t                    addr;                   //!< Device I2C address (e.g., 0x48 for 7-bit)
-    i2c_master_dev_handle_t     devhandle;
-} i2c_dev_t;
- */
 
 // Register defines 
 #define REG_CONVERSION 0
