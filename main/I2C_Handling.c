@@ -120,11 +120,11 @@ void i2c_master_init(void)
 
 
 	// ESP Docs AI Assistant suggestions
-	// ADS1115 - no clock stretching needed; 400 kHz fast mode is supported.
+	// ADS1115 - no clock stretching needed; 1 MHz fast-mode-plus is supported.
 	i2c_device_config_t ads_cfg = {
 		.dev_addr_length = I2C_ADDR_BIT_LEN_7,
 		.device_address = 0x48,
-		.scl_speed_hz = 400000,
+		.scl_speed_hz = 1000000,
 		.scl_wait_us = 5000,					// as per Google AI  2026-10-01
 	};
 	i2c_master_bus_add_device(bus_handle, &ads_cfg, &ads1115_handle);

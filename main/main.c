@@ -350,17 +350,11 @@ static volatile uint32_t isr_count = 0;     // written in ISR, read in main cont
 static void IRAM_ATTR ads_gpio_isr_handler(void* arg) {
     isr_count++;
 
-    gpio_set_level(MY_BLINK_PIN, 1);
-
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     xSemaphoreGiveFromISR(ads_rdy_semaphore, &xHigherPriorityTaskWoken);
     if (xHigherPriorityTaskWoken) {
         portYIELD_FROM_ISR();
-    }   
-    
-
-    //gpio_set_level(MY_BLINK_PIN, 0);
-
+    }
 }
 
 volatile  uint32_t  adc_signal_count = 0;                   // count of ADC semaphore signals - ADC ISR gives the semaphore
@@ -450,6 +444,18 @@ void adc_acquisition_task(void *pvParameters)
         {
             adc_signal_count++;
 
+            // Start the next channel's conversion immediately, then read the
+            // result while that conversion is in progress. This overlaps the
+            // I2C read with the new conversion, minimizing the idle gap between
+            // single-shot conversions. The conversion register still holds the
+            // result of the conversion that just completed.
+            uint8_t next_channel = (tracking_channel + 1) % 4;
+            retv = ads111x_write_reg(&ECGDev_ads1115, REG_CONFIG, ads_mux_config[next_channel]);
+            if (retv != ESP_OK)
+            {
+                ESP_LOGE(TAG, "Error from ads111x_write_reg = %d(%s)", retv, esp_err_to_name(retv));
+            }
+
             retv = ads111x_read_reg(&ECGDev_ads1115, REG_CONVERSION, &raw_reading);
             if (retv == ESP_OK)
             {
@@ -460,8 +466,6 @@ void adc_acquisition_task(void *pvParameters)
                 ESP_LOGE(TAG, " bad conversion! %d(%s)", retv, esp_err_to_name(retv));
             }
 
-            uint8_t next_channel = (tracking_channel + 1) % 4;
-
             if (tracking_channel == 3)
             {
                 // High-precision microsecond hardware timer stamp for ECG baseline alignment
@@ -470,12 +474,6 @@ void adc_acquisition_task(void *pvParameters)
             }
 
             tracking_channel = next_channel;
-
-            retv = ads111x_write_reg(&ECGDev_ads1115, REG_CONFIG, ads_mux_config[tracking_channel]);
-            if (retv != ESP_OK)
-            {
-                ESP_LOGE(TAG, "Error from ads111x_write_reg = %d(%s)", retv, esp_err_to_name(retv));
-            }
         }
         else
         {

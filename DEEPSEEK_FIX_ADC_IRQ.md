@@ -56,10 +56,14 @@ Bit decode of `0xC5E0`:
 ### `main/main.c`
 - `ads_mux_config[]` corrected to `0xC5E0` / `0xD5E0` / `0xE5E0` / `0xF5E0`.
 - Removed per-sample `ESP_LOGI` calls from the acquisition loop (they would
-  throttle the 860 SPS rate at UART speeds).
+  throttle the capture rate at UART speeds).
 - Replaced `xSemaphoreTake(..., portMAX_DELAY)` with a real
   `pdMS_TO_TICKS(2000)` timeout; the timeout branch now re-primes a conversion
   so the loop can recover instead of hanging silently.
+- Reordered the acquisition loop to write the next channel's config **before**
+  reading the result, so the I2C read overlaps the next conversion and the
+  single-shot idle gap is minimized.
+- Removed the per-interrupt `gpio_set_level(MY_BLINK_PIN, ...)` from the ISR.
 - Enabled the internal pull-up on `ADS_ALERT_GPIO` (open-drain active-low).
 - Made `isr_count` `volatile`; removed dead `delayT` and unused `f_val` code.
 
@@ -71,13 +75,16 @@ Bit decode of `0xC5E0`:
 ### `main/I2C_Handling.c`
 - `InitADS1115()` high threshold changed from `0x7FFF` to `0x8000` (MSB = 1,
   required to enable RDY mode).
-- ADS1115 I2C clock speed raised from 100 kHz to 400 kHz.
+- ADS1115 I2C clock speed raised from 100 kHz to 1 MHz (fast-mode-plus).
 
 ## Verification
 - Firmware builds cleanly (`ESP32-ECGMonitor.bin` generated).
 - On hardware: `ISR count` and `ADC count` now climb together.
-- Expected throughput: ~860 total SPS, i.e. **~215 SPS per channel** across the
-  4 multiplexed channels (one ADS1115 shared by 4 channels).
+- Measured rate was ~640 SPS total (~160 SPS/channel) in single-shot 4-channel
+  muxing mode; the write-first/read-second reorder and 1 MHz I2C are expected
+  to raise this toward ~750–800 SPS. The ADS1115's 860 SPS figure is the
+  continuous-conversion rate for a single channel and is not reachable while
+  multiplexing four channels in single-shot mode.
 
 ## Optional Follow-up Cleanup (not required for ADC capture)
 - Pre-existing compiler warnings: unused `count` in `app_main`, unused
