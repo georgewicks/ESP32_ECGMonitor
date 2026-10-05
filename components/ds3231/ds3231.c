@@ -148,6 +148,7 @@ esp_err_t ds3231_set_time(i2c_dev_t *dev, struct tm *time)
     CHECK_ARG(dev && time);
 
     uint8_t data[7];
+    esp_err_t retv = ESP_OK;
 
     /* time/date data */
     data[0] = dec2bcd(time->tm_sec);
@@ -165,7 +166,6 @@ esp_err_t ds3231_set_time(i2c_dev_t *dev, struct tm *time)
     I2C_DEV_CHECK(dev, i2c_dev_write_reg(dev, DS3231_ADDR_TIME, data, 7));
     I2C_DEV_GIVE_MUTEX(dev);
 #else
-    esp_err_t   retv;
     uint8_t     buff[8];
     buff[0] = DS3231_ADDR_TIME;                                                 // prepend the buffer with the register
     memcpy(&buff[1],data,sizeof(data));                                         // data follows
@@ -176,7 +176,7 @@ esp_err_t ds3231_set_time(i2c_dev_t *dev, struct tm *time)
     }
 #endif
 
-    return ESP_OK;
+    return retv;
 }
 
 esp_err_t ds3231_set_alarm(i2c_dev_t *dev, ds3231_alarm_t alarms, struct tm *time1,
@@ -613,6 +613,7 @@ esp_err_t ds3231_get_time(i2c_dev_t *dev, struct tm *time)
     if(res != ESP_OK)
     {
         ESP_LOGE(TAG, "ds3231_get_time err from i2c_master_transmit_receive = %d(%s)", res, esp_err_to_name(res));
+        return res;
     }
 #endif
 
