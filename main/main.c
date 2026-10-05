@@ -250,7 +250,7 @@ void    InitSD_SPI(void)
 
     // 1. Setup VFS and SD Card configuration
     esp_vfs_fat_sdmmc_mount_config_t mount_config = {
-        .format_if_mount_failed = false,
+        .format_if_mount_failed = true,
         .max_files = 5,
         .allocation_unit_size = 16 * 1024
     };
@@ -579,8 +579,12 @@ void sd_writer_task(void *pvParameters) {
     adc_sample_t    record = {0};
     uint8_t         got_mask = 0;
     TickType_t      last_rtc_check = xTaskGetTickCount();
+    TickType_t      last_flush = xTaskGetTickCount();
     struct tm       local_clock_copy;
     esp_err_t       retv;
+#ifdef  TEST_ECG_CSV
+    FILE*           csv = NULL;
+#endif
 
     ESP_LOGI(TAG, "%s: called", __func__);
     if(bEnableSD == false)
@@ -599,6 +603,17 @@ void sd_writer_task(void *pvParameters) {
     {
         ESP_LOGI(TAG, "%s: ** DS3231 is not enabled", __func__);
     }
+
+#ifdef  TEST_ECG_CSV
+    // Open once and keep the stream open; open/close per record throttles the
+    // writer and silently drops samples.
+    csv = fopen("/sdcard/ecg_trace.csv", "a");
+    if (csv == NULL) {
+        ESP_LOGE(TAG, "Failed to open /sdcard/ecg_trace.csv for append");
+    } else {
+        setvbuf(csv, NULL, _IOFBF, 8192);
+    }
+#endif
 
     while (1) {
         // Safe RTC Polling: Only check the physical chip once every 1000ms
@@ -631,10 +646,9 @@ void sd_writer_task(void *pvParameters) {
                 record.micro_timestamp = p.micro_timestamp;
                 sd_signal_count++;
 #ifdef  TEST_ECG_CSV
-                FILE* f = fopen("/sdcard/ecg_trace.csv", "a");
-                if (f != NULL) {
+                if (csv != NULL) {
                     // Formats as: HH:MM:SS,Microseconds,Ch0,Ch1,Ch2,Ch3
-                    fprintf(f, "%02d:%02d:%02d,%llu,%d,%d,%d,%d\n", 
+                    fprintf(csv, "%02d:%02d:%02d,%llu,%d,%d,%d,%d\n", 
                             global_wall_clock.tm_hour,
                             global_wall_clock.tm_min,
                             global_wall_clock.tm_sec,
@@ -643,7 +657,6 @@ void sd_writer_task(void *pvParameters) {
                             record.channels[1], 
                             record.channels[2], 
                             record.channels[3]);
-                    fclose(f);
                 }
 #endif
 #ifdef  PKG_SAMPLES_QRS
@@ -651,6 +664,15 @@ void sd_writer_task(void *pvParameters) {
 #endif
                 got_mask = 0;
             }
+
+#ifdef  TEST_ECG_CSV
+            // Flush periodically (not per record) so data reaches the card
+            // without throttling the writer.
+            if (csv != NULL && (xTaskGetTickCount() - last_flush) > pdMS_TO_TICKS(1000)) {
+                fflush(csv);
+                last_flush = xTaskGetTickCount();
+            }
+#endif
         }
     }
 }
