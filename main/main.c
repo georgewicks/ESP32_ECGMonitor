@@ -45,9 +45,9 @@
  */
 #define SYSTEST             (true)
 #define ADS1115_TEST        (true)
-#define DS3231_TEST         (false)
+#define DS3231_TEST         (true)
 #define PCF8574_TEST        (false)
-#define SD_TEST             (false)
+#define SD_TEST             (true)
 bool    bTestSysComponents = SYSTEST;
 bool    bEnableADS1115 = ADS1115_TEST;
 bool    bEnableDS3231 = DS3231_TEST;
@@ -135,9 +135,6 @@ static const uint16_t ads_mux_config_pair[2] = {
 // Global wall clock shared safely via thread updates
 // static volatile rtc_time_t global_wall_clock = {0};
 static volatile struct tm  global_wall_clock = {0};
-
-
-#define MY_BLINK_PIN GPIO_NUM_17
 
 
 /* ------------------------------------------------------------------------ */
@@ -799,22 +796,6 @@ void app_main(void)
         vTaskDelay(2000/portTICK_PERIOD_MS);
     }
     post_sta_connected();
-
-    // Define the configuration structure
-    gpio_config_t io_conf = {
-        .pin_bit_mask = (1ULL << MY_BLINK_PIN), // Bit mask for the pin
-        .mode = GPIO_MODE_OUTPUT,               // Set as output mode
-        .pull_up_en = GPIO_PULLUP_DISABLE,      // Disable pull-up
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,  // Disable pull-down
-        .intr_type = GPIO_INTR_DISABLE          // Disable interrupts
-    };
-
-    // 1. Apply the configuration
-    gpio_config(&io_conf);
-
-
-    //
-    //InitSD_SPI();
 
     // Setup the foundation for the ADC and the MicroSD writer
     Setup_ADC_SD();
