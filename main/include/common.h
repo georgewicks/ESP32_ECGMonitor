@@ -37,6 +37,7 @@
  * 
  */
 #define ADS111X_ADDR        0x48 //!< I2C device address with ADDR pin connected to ground
+#define ADS111X_ADDR_B      0x49 //!< second ADS1115, ADDR pin connected to VDD
 #define PCF8574_ADDR		0x27
 #define DS3231_EEPROM_ADDR  0x57 //!< I2C address
 #define DS3231_ADDR         0x68 //!< I2C address
@@ -46,7 +47,11 @@
 #define GPIO_I2C_SCL            GPIO_NUM_5
 //#define GPIO_I2C_ALERT          GPIO_NUM_6
 #define GPIO_I2C_ALERT          GPIO_NUM_21
-#define ADS_ALERT_GPIO          GPIO_I2C_ALERT
+
+// ADS1115 ALERT/RDY (conversion-ready) interrupt inputs. Open-drain, active-low,
+// require a pull-up (enabled in Setup_ADC_SD).
+#define ADS_ALERT_GPIO_A        GPIO_NUM_21   // ADS1115 #1 (0x48)
+#define ADS_ALERT_GPIO_B        GPIO_NUM_7    // ADS1115 #2 (0x49); GPIO7 was formerly GPIO_I2C_PCF8574_INT
 
 #define GPIO_I2C_PCF8574_INT    GPIO_NUM_7
 

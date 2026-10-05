@@ -60,6 +60,7 @@ extern void     basic_test_loop( void );
 extern void     i2c_master_init(void);
 extern void     InitI2C(void);
 extern bool     IsADS1115Present(void);
+extern bool     IsADS1115BPresent(void);
 extern bool     IsDS3231Present(void);
 
 extern bool     bWifi_Connected; // Global flag to indicate Wi-Fi connection status
@@ -70,6 +71,7 @@ i2c_master_bus_handle_t bus_handle;
 
 // Device handles - one per device
 extern i2c_master_dev_handle_t ads1115_handle;  // 0x48
+extern i2c_master_dev_handle_t ads1115_b_handle; // 0x49
 extern i2c_master_dev_handle_t gpio_exp_handle; // 0x27  PCF8574
 extern i2c_master_dev_handle_t eeprom_handle;   // 0x57
 extern i2c_master_dev_handle_t rtc_handle;      // 0x68
@@ -81,7 +83,9 @@ i2c_master_dev_handle_t dev_handle;
 extern esp_err_t    ads111x_read_reg( i2c_dev_t *dev, uint8_t reg, uint16_t *val);
 extern esp_err_t    ads111x_write_reg(i2c_dev_t *dev, uint8_t reg, uint16_t val);
 extern i2c_dev_t	ECGDev_ads1115;
+extern i2c_dev_t	ECGDev_ads1115_b;
 extern esp_err_t	InitADS1115(void);
+extern esp_err_t	InitADS1115B(void);
 extern i2c_dev_t    DS3231_dev;
 extern esp_err_t    InitDS3231(void);
 extern void         wifi_init_sta(void);
@@ -103,20 +107,29 @@ int     ECG_Buff_indicator = REC_PING;
 #define ECG_REC_MAX     (215)
 
 static QueueHandle_t adc_queue = NULL;
-static SemaphoreHandle_t ads_rdy_semaphore = NULL;
+static SemaphoreHandle_t ads_rdy_semA = NULL;
+static SemaphoreHandle_t ads_rdy_semB = NULL;
 
-// Exact configuration for the ADC:   Specify the channel (0-3), PGA = 010b, Single-shot (in conjunction with the ALRT pin, 
-// which triggers an interrupt), 860 SPS (DR field, 111b), ... TODO: better bit map description, and maybe setup bitmasks with shifts, etc. 
-// NOTE: There are indeed very good reasons for consilidating all the bits together in a single 16-bit value to be written to the 
-// configuration register: The API calls for writing to the configuration register can describe exactly the bitfields that make up
-// the given field, but at a cost: the API call will first read the configuration value, then mask the register value with the shifted
-// bitfield, and then write it back out to the configuration register. Using an atomic constant write operation makes the call to the 
-// ADS1115 fast and efficient, which is good goal, since we want to insure that the capture process is time intensive.
-static const uint16_t ads_mux_config[4] = {
-    0xC5E0, // Ch 0, Single-Shot, 860 SPS, Active Low, COMP_QUE=00 (RDY pin enabled)
-    0xD5E0, // Ch 1, Single-Shot, 860 SPS, Active Low, COMP_QUE=00 (RDY pin enabled)
-    0xE5E0, // Ch 2, Single-Shot, 860 SPS, Active Low, COMP_QUE=00 (RDY pin enabled)
-    0xF5E0  // Ch 3, Single-Shot, 860 SPS, Active Low, COMP_QUE=00 (RDY pin enabled)
+// Per-chip acquisition-task context
+typedef struct {
+    i2c_dev_t        *dev;
+    SemaphoreHandle_t rdy_sem;
+    uint8_t           chip;        // 0 -> channels[0..1], 1 -> channels[2..3]
+    int               alert_gpio;  // for diagnostics
+} ads_chip_ctx_t;
+
+// One 2-channel pair published by each chip task
+typedef struct {
+    uint8_t  chip;
+    uint64_t micro_timestamp;
+    int16_t  values[2];
+} ads_pair_t;
+
+// Each chip muxes 2 channels (AIN0/GND, AIN1/GND): single-shot, 860 SPS,
+// active-low, COMP_QUE=00 (RDY pin enabled). See DEEPSEEK_FIX_ADC_IRQ.md.
+static const uint16_t ads_mux_config_pair[2] = {
+    0xC5E0, // AIN0/GND
+    0xD5E0  // AIN1/GND
 };
 
 // Global wall clock shared safely via thread updates
@@ -309,12 +322,22 @@ static void FindAndInitDevices(void)
     ESP_LOGI(TAG, "%s: called", __func__);
     if(IsADS1115Present())
     {
-        ESP_LOGI(TAG, "ADS1115 found - do the initialization");
+        ESP_LOGI(TAG, "ADS1115 #1 (0x48) found - do the initialization");
         InitADS1115();
     }
     else
     {
-        ESP_LOGE(TAG, "ADS1115 not found! Cannot acquire ECG signal data!");
+        ESP_LOGE(TAG, "ADS1115 #1 (0x48) not found! Cannot acquire ECG signal data!");
+    }
+
+    if(IsADS1115BPresent())
+    {
+        ESP_LOGI(TAG, "ADS1115 #2 (0x49) found - do the initialization");
+        InitADS1115B();
+    }
+    else
+    {
+        ESP_LOGE(TAG, "ADS1115 #2 (0x49) not found! Only 2 ECG channels will be captured.");
     }
     
     ESP_LOGI(TAG, "Check for DS3231 ");
@@ -350,8 +373,9 @@ static volatile uint32_t isr_count = 0;     // written in ISR, read in main cont
 static void IRAM_ATTR ads_gpio_isr_handler(void* arg) {
     isr_count++;
 
+    SemaphoreHandle_t sem = (SemaphoreHandle_t)arg;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    xSemaphoreGiveFromISR(ads_rdy_semaphore, &xHigherPriorityTaskWoken);
+    xSemaphoreGiveFromISR(sem, &xHigherPriorityTaskWoken);
     if (xHigherPriorityTaskWoken) {
         portYIELD_FROM_ISR();
     }
@@ -391,14 +415,15 @@ void    Check_ADS1115_Regs_2(void)
 
 #endif
 
-// This is the AI recommendation: some slight changes in order to implement the code here.
-// CORE 0: High-Priority ECG Acquisition
+// High-priority ECG acquisition: one task instance per ADS1115 chip.
+// Each instance muxes 2 channels and publishes a 2-sample pair to the queue.
 void adc_acquisition_task(void *pvParameters) 
 {
-    uint8_t tracking_channel = 0;
-    adc_sample_t current_batch = {0};
+    ads_chip_ctx_t *ctx = (ads_chip_ctx_t *)pvParameters;
+    uint8_t  ch = 0;
+    int16_t  pair[2] = {0};
     uint16_t raw_reading = 0;
-    esp_err_t   retv;
+    esp_err_t retv;
 
     if(bEnableADS1115 == false)
     {
@@ -406,83 +431,68 @@ void adc_acquisition_task(void *pvParameters)
         vTaskDelete(NULL);
         return;
     }
- 
-    // ECG sample handling
-    curECGptr = &ECGPing;       // Kick off with the Ping Buffer
-    int ESampCnt = 0;
 
-    //i2c_dev_t   ADS1115;
-    ESP_LOGI(TAG, "%s: called", __func__);
+    ESP_LOGI(TAG, "%s: chip %d on GPIO %d", __func__, ctx->chip, ctx->alert_gpio);
 
-    //ads1115_write_reg(ADS1115_CFG_REG, ads_mux_config[tracking_channel]);
-    retv = ads111x_write_reg( &ECGDev_ads1115, REG_CONFIG, ads_mux_config[tracking_channel]);
-    if(retv != ESP_OK)
+    // Prime the first conversion (AIN0).
+    retv = ads111x_write_reg(ctx->dev, REG_CONFIG, ads_mux_config_pair[0]);
+    if (retv != ESP_OK)
     {
-        ESP_LOGE(TAG, "Error from ads111x_write_reg = %d(%s)", retv, esp_err_to_name(retv));
-        ESP_LOGE(TAG, " what was supposedly written to the config register = %X", ads_mux_config[tracking_channel]);
+        ESP_LOGE(TAG, "chip %d: initial config write failed = %d(%s)",
+                 ctx->chip, retv, esp_err_to_name(retv));
     }
-    else
-    {
-        ESP_LOGI(TAG, "Initial config write OK, value = 0x%04X", ads_mux_config[tracking_channel]);
-        // diag requested from ESP Docs AI
-        uint16_t cfg_readback = 0;
-        ads111x_read_reg(&ECGDev_ads1115, REG_CONFIG, &cfg_readback);
-        ESP_LOGI(TAG, "Config readback after mux write = 0x%04X", cfg_readback);
-        uint16_t lo = 0, hi = 0;
-        ads111x_read_reg(&ECGDev_ads1115, 0x02, &lo);
-        ads111x_read_reg(&ECGDev_ads1115, 0x03, &hi);
-        ESP_LOGI(TAG, "Thresh after mux write: Lo=0x%04X Hi=0x%04X", lo, hi);
-    }
-
-#ifdef AI_DEBUG
-    Check_ADS1115_Regs();
-#endif
 
     while (1)
     {
-        if (xSemaphoreTake(ads_rdy_semaphore, pdMS_TO_TICKS(2000)) == pdTRUE)
+        if (xSemaphoreTake(ctx->rdy_sem, pdMS_TO_TICKS(2000)) == pdTRUE)
         {
             adc_signal_count++;
+
+            uint8_t next = ch ^ 1;
 
             // Start the next channel's conversion immediately, then read the
             // result while that conversion is in progress. This overlaps the
             // I2C read with the new conversion, minimizing the idle gap between
             // single-shot conversions. The conversion register still holds the
             // result of the conversion that just completed.
-            uint8_t next_channel = (tracking_channel + 1) % 4;
-            retv = ads111x_write_reg(&ECGDev_ads1115, REG_CONFIG, ads_mux_config[next_channel]);
+            retv = ads111x_write_reg(ctx->dev, REG_CONFIG, ads_mux_config_pair[next]);
             if (retv != ESP_OK)
             {
-                ESP_LOGE(TAG, "Error from ads111x_write_reg = %d(%s)", retv, esp_err_to_name(retv));
+                ESP_LOGE(TAG, "chip %d: config write failed = %d(%s)",
+                         ctx->chip, retv, esp_err_to_name(retv));
             }
 
-            retv = ads111x_read_reg(&ECGDev_ads1115, REG_CONVERSION, &raw_reading);
+            retv = ads111x_read_reg(ctx->dev, REG_CONVERSION, &raw_reading);
             if (retv == ESP_OK)
             {
-                current_batch.channels[tracking_channel] = (int16_t)raw_reading;
+                pair[ch] = (int16_t)raw_reading;
             }
             else
             {
-                ESP_LOGE(TAG, " bad conversion! %d(%s)", retv, esp_err_to_name(retv));
+                ESP_LOGE(TAG, "chip %d: bad conversion! %d(%s)",
+                         ctx->chip, retv, esp_err_to_name(retv));
             }
 
-            if (tracking_channel == 3)
+            if (ch == 1)
             {
-                // High-precision microsecond hardware timer stamp for ECG baseline alignment
-                current_batch.micro_timestamp = esp_timer_get_time();
-                xQueueSend(adc_queue, &current_batch, 0);
+                ads_pair_t out = {
+                    .chip = ctx->chip,
+                    .micro_timestamp = esp_timer_get_time(),
+                };
+                out.values[0] = pair[0];
+                out.values[1] = pair[1];
+                xQueueSend(adc_queue, &out, 0);
             }
 
-            tracking_channel = next_channel;
+            ch = next;
         }
         else
         {
             // No ALERT/RDY interrupt within 2 seconds: re-prime a conversion so the
             // capture loop can recover if the ready pin ever stalls.
-            ESP_LOGW(TAG, "Timeout waiting for ALERT/RDY interrupt on GPIO %d!", ADS_ALERT_GPIO);
-            ESP_LOGW(TAG, "adc_signal_count = %lu, isr_count = %lu",
-                     (unsigned long)adc_signal_count, (unsigned long)isr_count);
-            ads111x_write_reg(&ECGDev_ads1115, REG_CONFIG, ads_mux_config[tracking_channel]);
+            ESP_LOGW(TAG, "chip %d (GPIO %d): timeout waiting for ALERT/RDY",
+                     ctx->chip, ctx->alert_gpio);
+            ads111x_write_reg(ctx->dev, REG_CONFIG, ads_mux_config_pair[ch]);
         }
     }
 }
@@ -569,9 +579,9 @@ void    AppendToECGPacket(adc_sample_t *log_data)
  */
 // CORE 1: Low-Priority RTC Syncing & SD Card Storage 
 void sd_writer_task(void *pvParameters) {
-    adc_sample_t    log_data;
+    adc_sample_t    record = {0};
+    uint8_t         got_mask = 0;
     TickType_t      last_rtc_check = xTaskGetTickCount();
-    // rtc_time_t      local_clock_copy;
     struct tm       local_clock_copy;
     esp_err_t       retv;
 
@@ -584,7 +594,6 @@ void sd_writer_task(void *pvParameters) {
     }
  
     // Seed the initial wall clock
-    //ds3231_read_time(&local_clock_copy);
     if(bEnableDS3231) {
         retv = ds3231_get_time( &DS3231_dev, &local_clock_copy);
         global_wall_clock = local_clock_copy;
@@ -612,28 +621,39 @@ void sd_writer_task(void *pvParameters) {
             }
         }
 
-        // Pull incoming high-speed ECG data from queue
-        if (xQueueReceive(adc_queue, &log_data, portMAX_DELAY) == pdTRUE) {
-            sd_signal_count++;
+        // Pull incoming 2-channel pairs from the chip tasks and merge them into
+        // a full 4-channel record once both chips have contributed a pair.
+        ads_pair_t p;
+        if (xQueueReceive(adc_queue, &p, portMAX_DELAY) == pdTRUE) {
+            uint8_t base = p.chip * 2;
+            record.channels[base + 0] = p.values[0];
+            record.channels[base + 1] = p.values[1];
+            got_mask |= (1u << p.chip);
+
+            if (got_mask == 0x3) {
+                record.micro_timestamp = p.micro_timestamp;
+                sd_signal_count++;
 #ifdef  TEST_ECG_CSV
-            FILE* f = fopen("/sdcard/ecg_trace.csv", "a");
-            if (f != NULL) {
-                // Formats as: HH:MM:SS,Microseconds,Ch0,Ch1,Ch2,Ch3
-                fprintf(f, "%02d:%02d:%02d,%llu,%d,%d,%d,%d\n", 
-                        global_wall_clock.tm_hour,
-                        global_wall_clock.tm_min,
-                        global_wall_clock.tm_sec,
-                        log_data.micro_timestamp,
-                        log_data.channels[0], 
-                        log_data.channels[1], 
-                        log_data.channels[2], 
-                        log_data.channels[3]);
-                fclose(f);
-            }
+                FILE* f = fopen("/sdcard/ecg_trace.csv", "a");
+                if (f != NULL) {
+                    // Formats as: HH:MM:SS,Microseconds,Ch0,Ch1,Ch2,Ch3
+                    fprintf(f, "%02d:%02d:%02d,%llu,%d,%d,%d,%d\n", 
+                            global_wall_clock.tm_hour,
+                            global_wall_clock.tm_min,
+                            global_wall_clock.tm_sec,
+                            record.micro_timestamp,
+                            record.channels[0], 
+                            record.channels[1], 
+                            record.channels[2], 
+                            record.channels[3]);
+                    fclose(f);
+                }
 #endif
 #ifdef  PKG_SAMPLES_QRS
-            AppendToECGPacket(&log_data);
+                AppendToECGPacket(&record);
 #endif
+                got_mask = 0;
+            }
         }
     }
 }
@@ -645,7 +665,7 @@ void sd_writer_task(void *pvParameters) {
 void Setup_ADC_SD(void)
 {
     esp_err_t   retv;
-
+    static ads_chip_ctx_t chip_ctx[2];
 
     ESP_LOGI(TAG, "%s: called", __func__);
     if(bEnableADS1115 == false)
@@ -653,26 +673,20 @@ void Setup_ADC_SD(void)
         ESP_LOGI(TAG,"%s: ADS1115 is not enabled! -- exiting", __func__);    
     }
 
-    ESP_LOGI(TAG, " ADS_ALERT_GPIO = %d", ADS_ALERT_GPIO );
-    // The following items were all suggestions from Google AI (see docs/AI-assisted-circuit-and-SW-design)
-    // We are going to setup the ADS1115 to generate the ALERT/RDY signal when an ADC capture is ready to 
-    // be acquired. This eliminates polling by letting the chip generate an interrupt when a sample is ready
-    // to be retrieved.
+    // ALERT/RDY is open-drain active-low; pull up so each line idles high and
+    // only pulses low when a conversion completes.
     gpio_config_t io_conf = {
         .intr_type = GPIO_INTR_NEGEDGE,
-        .pin_bit_mask = (1ULL << ADS_ALERT_GPIO),
+        .pin_bit_mask = (1ULL << ADS_ALERT_GPIO_A) | (1ULL << ADS_ALERT_GPIO_B),
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
         .mode = GPIO_MODE_INPUT,
-        // ALERT/RDY is open-drain active-low; pull up so the line idles high and
-        // only pulses low when a conversion completes.
         .pull_up_en = GPIO_PULLUP_ENABLE
     };
     gpio_config(&io_conf);
 
-    // We use a semaphore system to notify the ADC acquisition task an process the ADC sample (which is 
-    // "consumed" by the ECG processing). The sample is passed to the pask via a message queue.
-    ads_rdy_semaphore = xSemaphoreCreateBinary();
-    adc_queue = xQueueCreate(100, sizeof(adc_sample_t)); // Expanded queue size for dense trace data
+    ads_rdy_semA = xSemaphoreCreateBinary();
+    ads_rdy_semB = xSemaphoreCreateBinary();
+    adc_queue = xQueueCreate(200, sizeof(ads_pair_t));
 
     retv = gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
     if(retv != ESP_OK)
@@ -684,16 +698,28 @@ void Setup_ADC_SD(void)
         ESP_LOGI(TAG, "gpio_install_isr_service OK");
     }
 
-    retv = gpio_isr_handler_add(ADS_ALERT_GPIO, ads_gpio_isr_handler, NULL);
+    retv = gpio_isr_handler_add(ADS_ALERT_GPIO_A, ads_gpio_isr_handler, (void*)ads_rdy_semA);
     if(retv != ESP_OK)
     {
-        ESP_LOGD(TAG, "error from gpio_isr_handler_add = %d(%s)", retv, esp_err_to_name(retv));
+        ESP_LOGD(TAG, "error from gpio_isr_handler_add(GPIO %d) = %d(%s)", ADS_ALERT_GPIO_A, retv, esp_err_to_name(retv));
     } else {
-        ESP_LOGI(TAG, "gpio_isr_handler_add OK on GPIO %d", ADS_ALERT_GPIO);
+        ESP_LOGI(TAG, "gpio_isr_handler_add OK on GPIO %d", ADS_ALERT_GPIO_A);
     }
 
-    // Pin high priority capture to Core 0, file management to Core 1
-    xTaskCreatePinnedToCore(adc_acquisition_task, "ECG_Acq", 8192, NULL, 10, NULL, 0);
+    retv = gpio_isr_handler_add(ADS_ALERT_GPIO_B, ads_gpio_isr_handler, (void*)ads_rdy_semB);
+    if(retv != ESP_OK)
+    {
+        ESP_LOGD(TAG, "error from gpio_isr_handler_add(GPIO %d) = %d(%s)", ADS_ALERT_GPIO_B, retv, esp_err_to_name(retv));
+    } else {
+        ESP_LOGI(TAG, "gpio_isr_handler_add OK on GPIO %d", ADS_ALERT_GPIO_B);
+    }
+
+    chip_ctx[0] = (ads_chip_ctx_t){ &ECGDev_ads1115,   ads_rdy_semA, 0, ADS_ALERT_GPIO_A };
+    chip_ctx[1] = (ads_chip_ctx_t){ &ECGDev_ads1115_b, ads_rdy_semB, 1, ADS_ALERT_GPIO_B };
+
+    // High-priority capture on cores 0/1; file management on core 1.
+    xTaskCreatePinnedToCore(adc_acquisition_task, "ECG_AcqA", 8192, &chip_ctx[0], 10, NULL, 0);
+    xTaskCreatePinnedToCore(adc_acquisition_task, "ECG_AcqB", 8192, &chip_ctx[1], 10, NULL, 1);
     xTaskCreatePinnedToCore(sd_writer_task, "SD_Write", 4096, NULL, 4, NULL, 1);
 }
 

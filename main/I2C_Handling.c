@@ -66,6 +66,11 @@ bool    IsADS1115Present(void)
     return i2c_device_list[ADS111X_ADDR_GND];
 }
 
+bool    IsADS1115BPresent(void)
+{
+    return i2c_device_list[ADS111X_ADDR_B];
+}
+
 bool    IsDS3231Present(void)
 {
     return i2c_device_list[DS3231_ADDR];
@@ -85,6 +90,7 @@ i2c_master_dev_handle_t ads1115_handle;  // 0x48
 i2c_master_dev_handle_t gpio_exp_handle; // 0x27  PCF8574
 i2c_master_dev_handle_t eeprom_handle;   // 0x57
 i2c_master_dev_handle_t rtc_handle;      // 0x68
+i2c_master_dev_handle_t ads1115_b_handle; // 0x49  second ADS1115
 
 /**
  * @brief i2c master initialization
@@ -130,6 +136,16 @@ void i2c_master_init(void)
 	i2c_master_bus_add_device(bus_handle, &ads_cfg, &ads1115_handle);
 
 	ESP_LOGI(TAG, "ads1115_handle = %p", (void*)ads1115_handle);
+
+	// Second ADS1115 at 0x49 (ADDR -> VDD), same 1 MHz fast-mode-plus.
+	i2c_device_config_t ads_b_cfg = {
+		.dev_addr_length = I2C_ADDR_BIT_LEN_7,
+		.device_address = ADS111X_ADDR_B,
+		.scl_speed_hz = 1000000,
+		.scl_wait_us = 5000,
+	};
+	i2c_master_bus_add_device(bus_handle, &ads_b_cfg, &ads1115_b_handle);
+	ESP_LOGI(TAG, "ads1115_b_handle = %p", (void*)ads1115_b_handle);
 
 	// GPIO Expander
 	i2c_device_config_t gpio_exp_cfg = {
@@ -259,6 +275,7 @@ void    InitI2C(void)
  */
 
 i2c_dev_t	ECGDev_ads1115;
+i2c_dev_t	ECGDev_ads1115_b;
 
 #if 0
 esp_err_t	InitADS1115(void)
@@ -334,6 +351,24 @@ esp_err_t InitADS1115(void)
         ESP_LOGI(TAG, "Hi thresh readback = 0x%04X", hi);
 
         xSemaphoreGive(xMutex);  // Inside the if block!
+    }
+    return retv;
+}
+
+esp_err_t InitADS1115B(void)
+{
+    esp_err_t retv = ESP_OK;
+    if (xSemaphoreTake(xMutex, portMAX_DELAY) == pdTRUE)
+    {
+        retv = ads111x_init_desc(&ECGDev_ads1115_b, ads1115_b_handle,
+                                  ADS111X_ADDR_VCC, I2C_NUM, 0, 0);
+        ESP_LOGI(TAG, "ads111x_init_desc(B) = %d(%s)", retv, esp_err_to_name(retv));
+
+        // Hi_thresh MSB = 1 / Lo_thresh MSB = 0 enables ALERT/RDY RDY mode.
+        ads111x_set_comp_low_thresh(&ECGDev_ads1115_b, 0x0000);
+        ads111x_set_comp_high_thresh(&ECGDev_ads1115_b, 0x8000);
+
+        xSemaphoreGive(xMutex);
     }
     return retv;
 }
