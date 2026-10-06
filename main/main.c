@@ -667,9 +667,15 @@ void sd_writer_task(void *pvParameters) {
 
 #ifdef  TEST_ECG_CSV
             // Flush periodically (not per record) so data reaches the card
-            // without throttling the writer.
+            // without throttling the writer. fflush() alone only moves the
+            // newlib buffer into the FATFS sector cache; fsync() forces FATFS
+            // to commit the data and the directory entry (file size) to the
+            // SD card so it survives a power-off/reset.
             if (csv != NULL && (xTaskGetTickCount() - last_flush) > pdMS_TO_TICKS(1000)) {
                 fflush(csv);
+                if (fsync(fileno(csv)) != 0) {
+                    ESP_LOGE(TAG, "fsync(ecg_trace.csv) failed");
+                }
                 last_flush = xTaskGetTickCount();
             }
 #endif
