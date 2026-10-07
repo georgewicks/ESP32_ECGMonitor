@@ -39,6 +39,13 @@
 #define TEST_ECG_CSV
 #define PKG_SAMPLES_QRS
 
+/* Self-recording test harness: after boot, count down TEST_SETTLE_SECONDS
+ * (operator leans back and stays still), record for TEST_RECORD_SECONDS,
+ * then close the CSV and park the task forever so the operator can move
+ * without contaminating the trace. */
+#define TEST_SETTLE_SECONDS     (10)
+#define TEST_RECORD_SECONDS     (120)
+
 /**
  * @brief Component and System testing
  * 
@@ -580,6 +587,8 @@ void sd_writer_task(void *pvParameters) {
     uint8_t         got_mask = 0;
     TickType_t      last_rtc_check = xTaskGetTickCount();
     TickType_t      last_flush = xTaskGetTickCount();
+    TickType_t      record_start = 0;
+    TickType_t      last_status = 0;
     struct tm       local_clock_copy;
     esp_err_t       retv;
 #ifdef  TEST_ECG_CSV
@@ -614,6 +623,17 @@ void sd_writer_task(void *pvParameters) {
         setvbuf(csv, NULL, _IOFBF, 8192);
     }
 #endif
+
+    // Give the operator a clear signal of when capture begins so they can
+    // settle and remain motionless for the duration of the recording.
+    for (int c = TEST_SETTLE_SECONDS; c > 0; c--) {
+        ESP_LOGI(TAG, "Recording starts in %d s...", c);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+    ESP_LOGI(TAG, "*** RECORDING STARTED: remain still for %d s ***", TEST_RECORD_SECONDS);
+    record_start = xTaskGetTickCount();
+    last_flush = record_start;
+    last_status = record_start;
 
     while (1) {
         // Safe RTC Polling: Only check the physical chip once every 1000ms
@@ -679,7 +699,35 @@ void sd_writer_task(void *pvParameters) {
                 last_flush = xTaskGetTickCount();
             }
 #endif
+
+#ifdef  TEST_ECG_CSV
+            // Fixed-duration recording: once the window elapses, flush and
+            // close the file so it is complete on the card, then park the task.
+            if (csv != NULL) {
+                TickType_t elapsed = xTaskGetTickCount() - record_start;
+                if (elapsed >= pdMS_TO_TICKS(TEST_RECORD_SECONDS * 1000)) {
+                    fflush(csv);
+                    fsync(fileno(csv));
+                    fclose(csv);
+                    csv = NULL;
+                    ESP_LOGI(TAG, "*** RECORDING COMPLETE: file closed. You may move now. ***");
+                    break;
+                }
+                if ((xTaskGetTickCount() - last_status) >= pdMS_TO_TICKS(10000)) {
+                    int remaining = TEST_RECORD_SECONDS - (int)(elapsed / pdMS_TO_TICKS(1000));
+                    ESP_LOGI(TAG, "Recording... %d s remaining", remaining);
+                    last_status = xTaskGetTickCount();
+                }
+            }
+#endif
         }
+    }
+
+    // Capture window finished: park the task so the closed file is left
+    // intact while the rest of the system keeps running.
+    ESP_LOGI(TAG, "%s: recording finished -- idle spin", __func__);
+    while (1) {
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
@@ -762,8 +810,6 @@ void    post_sta_connected(void)
 
 void app_main(void)
 {
-    int sec_count = 0;
-
     ESP_LOGI(TAG, "%s: starting", __func__);
 
     do_chip_info();
@@ -850,21 +896,14 @@ void app_main(void)
         ESP_LOGI(TAG, "blinking...");
     }
 #endif
-    int count = 0;
+    // The SD writer task handles the fixed-duration recording and then parks
+    // itself; app_main just prints a heartbeat so the operator can see that
+    // acquisition is still alive.
     while(1)
     {
         // This is a visual way of confirming that the ADC capture is functioning... or not.
-        // TODO: Move this to a basic POST test, that can be invoked for testing.
         ESP_LOGI(TAG, "Running... SD count = %d, ADC count = %d  ISR count = %lu",sd_signal_count,adc_signal_count,isr_count);
         vTaskDelay(2000/portTICK_PERIOD_MS);
-        sec_count++;
-        if(sec_count == 60)
-        {
-            break;
-        }
     }
-
-    do_restart();
-    
 }
 
