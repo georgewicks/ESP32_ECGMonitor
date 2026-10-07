@@ -46,6 +46,13 @@
 #define TEST_SETTLE_SECONDS     (10)
 #define TEST_RECORD_SECONDS     (120)
 
+/* Leads-off / signal-invalid detection: the AD8232 output pegs at the ADC
+ * rail when an electrode loses contact (the LO+/LO- pins only cover IN+/IN-,
+ * not the driven RLD electrode, so the data itself is the reliable tell). */
+#define ECG_SIGNAL_CHANNEL      (2)     /* ADS1115 #2 AIN0 = AD8232 OUTPUT   */
+#define ECG_RAIL_MARGIN         (100)   /* LSB within full-scale => railed   */
+#define ECG_RAIL_SAMPLES        (70)    /* ~200 ms at ~357 SPS before warn   */
+
 /**
  * @brief Component and System testing
  * 
@@ -589,6 +596,8 @@ void sd_writer_task(void *pvParameters) {
     TickType_t      last_flush = xTaskGetTickCount();
     TickType_t      record_start = 0;
     TickType_t      last_status = 0;
+    int             rail_count = 0;
+    bool            leads_off = false;
     struct tm       local_clock_copy;
     esp_err_t       retv;
 #ifdef  TEST_ECG_CSV
@@ -665,6 +674,30 @@ void sd_writer_task(void *pvParameters) {
             if (got_mask == 0x3) {
                 record.micro_timestamp = p.micro_timestamp;
                 sd_signal_count++;
+
+                // Detect a leads-off / saturated ECG: the AD8232 output pegs
+                // at the ADC rail when an electrode loses contact.
+                {
+                    int16_t ecg = record.channels[ECG_SIGNAL_CHANNEL];
+                    bool railed = (ecg >= (32767 - ECG_RAIL_MARGIN)) ||
+                                  (ecg <= (-32768 + ECG_RAIL_MARGIN));
+                    if (railed) {
+                        if (++rail_count >= ECG_RAIL_SAMPLES && !leads_off) {
+                            leads_off = true;
+                            ESP_LOGW(TAG, "LEADS OFF? ECG ch%d railed at %d for >= %d samples (~%d ms)",
+                                     ECG_SIGNAL_CHANNEL, ecg, ECG_RAIL_SAMPLES,
+                                     ECG_RAIL_SAMPLES * 1000 / 357);
+                        }
+                    } else {
+                        if (leads_off) {
+                            ESP_LOGI(TAG, "ECG signal recovered (ch%d = %d)",
+                                     ECG_SIGNAL_CHANNEL, ecg);
+                            leads_off = false;
+                        }
+                        rail_count = 0;
+                    }
+                }
+
 #ifdef  TEST_ECG_CSV
                 if (csv != NULL) {
                     // Formats as: HH:MM:SS,Microseconds,Ch0,Ch1,Ch2,Ch3
