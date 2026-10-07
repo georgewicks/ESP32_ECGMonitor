@@ -6,12 +6,24 @@
  * Real-Time QRS Detection Algorithm", IEEE TBME, 1985, adapted to a 357 Hz
  * sample rate. Coefficients were computed offline (see tools/). The decision
  * stage uses adaptive thresholds SPKI/NPKI with T-wave rejection.
+ *
+ * A 60 Hz mains notch filter is applied ahead of the bandpass. Its center is
+ * computed for 352 Hz (the observed per-channel rate; the nominal 357 Hz
+ * drifts ~2% with bus contention), which gives robust rejection across the
+ * observed 349-356 Hz range.
  */
 
 #include <stdbool.h>
 #include <string.h>
 
 #include "pan_tompkins.h"
+
+/* 60 Hz mains notch, 2nd-order IIR (scipy.signal.iirnotch, Fs=352 Hz, Q=10). */
+#define NOTCH_B0  0.949126f
+#define NOTCH_B1 -0.909735f
+#define NOTCH_B2  0.949126f
+#define NOTCH_A1 -0.909735f
+#define NOTCH_A2  0.898252f
 
 /* Butterworth 2nd-order low-pass @ 11 Hz, Fs = 357 Hz (scipy.signal.butter) */
 #define LP_B0  0.008222f
@@ -40,11 +52,19 @@ int pan_tompkins_process(pt_context_t *ctx, const float *x, int count,
     for (int i = 0; i < count; i++) {
         const float v = x[i];
 
+        /* --- 60 Hz notch (direct-form II), ahead of the bandpass --- */
+        const float nz = NOTCH_B0 * v + NOTCH_B1 * ctx->notch_x1 + NOTCH_B2 * ctx->notch_x2
+                       - NOTCH_A1 * ctx->notch_y1 - NOTCH_A2 * ctx->notch_y2;
+        ctx->notch_x2 = ctx->notch_x1;
+        ctx->notch_x1 = v;
+        ctx->notch_y2 = ctx->notch_y1;
+        ctx->notch_y1 = nz;
+
         /* --- low-pass biquad (direct-form II) --- */
-        const float lp = LP_B0 * v + LP_B1 * ctx->lp_x1 + LP_B2 * ctx->lp_x2
+        const float lp = LP_B0 * nz + LP_B1 * ctx->lp_x1 + LP_B2 * ctx->lp_x2
                        - LP_A1 * ctx->lp_y1 - LP_A2 * ctx->lp_y2;
         ctx->lp_x2 = ctx->lp_x1;
-        ctx->lp_x1 = v;
+        ctx->lp_x1 = nz;
         ctx->lp_y2 = ctx->lp_y1;
         ctx->lp_y1 = lp;
 

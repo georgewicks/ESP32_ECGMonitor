@@ -3,8 +3,8 @@
  * @brief Pan-Tompkins real-time QRS detection (streaming, per-channel state).
  *
  * Implements the classic Pan & Tompkins (1985) preprocessing chain:
- *   bandpass (cascaded Butterworth LP @ 11 Hz + HP @ 5 Hz) ->
- *   derivative -> squaring -> moving-window integrator (150 ms) ->
+ *   60 Hz mains notch -> bandpass (cascaded Butterworth LP @ 11 Hz + HP @ 5 Hz)
+ *   -> derivative -> squaring -> moving-window integrator (150 ms) ->
  *   adaptive dual-threshold decision with T-wave rejection.
  *
  * One `pt_context_t` must be maintained per ECG channel (the channels are
@@ -35,6 +35,8 @@ typedef struct {
 
 /** Per-channel detector state (zero-initialize before use). */
 typedef struct {
+    /* 60 Hz notch filter state (direct-form II) */
+    float notch_x1, notch_x2, notch_y1, notch_y2;
     /* bandpass biquad state (direct-form II) */
     float lp_x1, lp_x2, lp_y1, lp_y2;
     float hp_x1, hp_x2, hp_y1, hp_y2;
