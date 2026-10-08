@@ -47,5 +47,8 @@ The following is a very rough sketch of the ECG system. NOTE: the drawing reflec
     * The data is written to the MicroSD card.
     * Optionally, a LCD screen if present and configured can be updated with the new data as well.
 
+# Additional Documentation
+* [Power-Supply Noise Guide for Makers](./docs/Power-Supply-Noise-Guide.md) — how to diagnose and fix 60 Hz mains hum vs. switching-regulator noise in this design (battery power, grounding, decoupling, and LC filters).
+
 
 
