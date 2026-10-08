@@ -104,6 +104,7 @@ extern i2c_dev_t    DS3231_dev;
 extern esp_err_t    InitDS3231(void);
 extern void         wifi_init_sta(void);
 extern void         fetch_sntp_time(void);
+extern void         wifi_shutdown(void);
 
 // ECG sample handling: we could keep the same 4-channel sample array,
 // sending to the sd_task, that we eventually turn into a full 1 second 
@@ -851,6 +852,10 @@ void    post_sta_connected(void)
     fetch_sntp_time();              // ← ADD THIS - starts SNTP and blocks until synced
     // Now, we can sync up the RTC...
     sync_ntp_to_ds3231(&DS3231_dev);
+
+    // RTC is synced; Wi-Fi is no longer needed. Turn it off to save power and
+    // keep the device off the network for the rest of the session.
+    wifi_shutdown();
 
     // WOW! This is wrong!!! I believe some of this did come 
     // from AI recs, will need to go back over sometime.

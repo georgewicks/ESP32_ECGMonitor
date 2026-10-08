@@ -32,6 +32,8 @@ static EventGroupHandle_t s_wifi_event_group;
 
 bool bWifi_Connected = false; // Global flag to indicate Wi-Fi connection status
 
+static bool s_wifi_stopping = false; // set before a deliberate esp_wifi_stop()
+
 static const char *TAG = "ECGMon-WIFI";
 
 // Optional callback triggered when SNTP actually syncs the system time
@@ -75,6 +77,24 @@ void fetch_sntp_time(void)
     ESP_LOGI(TAG, "Synchronized Date/Time: %s", strftime_buf);
 }
 
+/**
+ * @brief  Turn Wi-Fi off once NTP has synced the RTC.
+ *
+ * The device only needs Wi-Fi for the one-time SNTP sync at boot. Leaving the
+ * radio on wastes battery and keeps the device present on the network, which
+ * is undesirable for a medical device. esp_wifi_stop() also fires
+ * WIFI_EVENT_STA_DISCONNECTED, so s_wifi_stopping suppresses the auto-reconnect.
+ */
+void wifi_shutdown(void)
+{
+    if (s_wifi_stopping) {
+        return;
+    }
+    s_wifi_stopping = true;
+    esp_wifi_stop();
+    ESP_LOGI(TAG, "Wi-Fi stopped after NTP sync (power saving)");
+}
+
 // 1. Wi-Fi and IP Event Handler
 static void event_handler(void* arg, esp_event_base_t event_base,
                                 int32_t event_id, void* event_data)
@@ -85,8 +105,13 @@ static void event_handler(void* arg, esp_event_base_t event_base,
         wifi_event_sta_disconnected_t *disconn = (wifi_event_sta_disconnected_t *)event_data;
         ESP_LOGI(TAG, "Wi-Fi disconnected, reason=%d", disconn->reason);
 
+        bWifi_Connected = false;
+        if (s_wifi_stopping) {
+            // Deliberate shutdown after NTP sync; don't reconnect.
+            return;
+        }
+
         ESP_LOGI(TAG, "Disconnected from AP. Retrying...");
-        bWifi_Connected = false;        
         esp_wifi_connect();
         xEventGroupClearBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) { // Fixed here
