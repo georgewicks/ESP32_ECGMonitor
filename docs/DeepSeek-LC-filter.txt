@@ -1,0 +1,103 @@
+In order to limit noise from a power circuit it has been suggested to me to "add an LC filter on the boost output (≈10–22 µH + 100 µF electrolytic + 100 nF ceramic)". Can you explain what this circuit would look like?
+The LC Filter Circuit
+
+The suggestion describes a second-order low-pass LC filter placed on the output of a boost converter. Here's what it looks like:
+Schematic
+text
+
+Boost Converter Output
+        │
+        ●───────────────────────┬──────────┬──────────●─────► To Load
+        │                       │          │          │
+       ─┴─                     L1         C1         C2
+       ─┬─  (boost output      10–22µH   100µF      100nF
+        │    cap, if present)   │        electrolytic  ceramic
+        │                       │          │          │
+        │                       │          │          │
+        ●───────────────────────┴──────────┴──────────●─────► GND
+
+Components Explained
+Component	Value	Purpose
+L1	10–22 µH	Series inductor — blocks high-frequency AC ripple current
+C1	100 µF electrolytic	Bulk capacitance — handles lower-frequency ripple and transient load steps
+C2	100 nF ceramic	High-frequency bypass — handles switching noise (kHz–MHz) that the electrolytic can't due to its ESL
+How It Works
+
+This is a low-pass filter with a corner frequency:
+
+fc=12πL⋅Cfc​=2πL⋅C
+​1​
+
+With L = 10 µH and C = 100 µF:
+
+    f_c ≈ 5 kHz
+
+For L = 22 µH and C = 100 µF:
+
+    f_c ≈ 3.4 kHz
+
+Frequencies above f_c are attenuated at -40 dB/decade (second-order roll-off).
+Why Two Capacitors?
+
+Electrolytics have significant ESL (equivalent series inductance) and ESR, so they become ineffective at high frequencies. The 100 nF ceramic has very low ESL and handles the high-frequency switching noise (typically 100 kHz – several MHz). They work as a team:
+
+    Electrolytic → low-frequency ripple
+
+    Ceramic → high-frequency switching spikes
+
+Practical Layout Notes
+
+    Place the ceramic cap closest to the load/point of noise concern — its job is high-frequency.
+
+    Keep the loop area small — the L–C–GND loop should be tight to avoid radiating or picking up noise.
+
+    Watch inductor saturation — it must handle the full DC output current without saturating, or the filter becomes ineffective (and the inductance collapses).
+
+    Damping — an LC filter can resonate and actually amplify noise near f_c. A small series resistor with the electrolytic (or an RC damping network) is often added to tame the Q. This is a common gotcha.
+
+    The boost's own output cap may already provide some of this — don't assume you need to duplicate it.
+
+Damping Example (if needed)
+text
+
+        ┌─── L1 ───┬───────────●──►
+        │          │           │
+        │         C1      R_damp (1–5Ω)
+        │          │           │
+        │          │          C_damp
+        │          │           │
+        └──────────┴───────────●──► GND
+
+Or simply add a small resistor in series with the electrolytic (e.g., 0.1–1 Ω) if the ESR isn't already sufficient to damp the resonance.
+
+In short: It's a classic π-type (or single-stage L + dual-C) low-pass filter hung on the boost output. The inductor blocks ripple current, the big cap absorbs bulk ripple, and the small ceramic shorts out the high-frequency junk. Just be mindful of resonance/damping and inductor current rating.
+This was suggested as a way to cut down on noise for a battery supply. The concern was because of the 60 Hz hum for power supplied via a USB cable powering a esp32 devkit. Does this make sense?
+Found 20 web pages
+
+No, it does not make sense to use that LC filter for this specific problem.
+
+The suggested LC filter is designed to remove high-frequency switching noise (typically hundreds of kHz to MHz), not the low-frequency 60 Hz hum you are experiencing. In fact, using it for 60 Hz could make your power supply perform worse.
+
+Here is a breakdown of why this mismatch occurs and what you should investigate instead.
+🔍 Why the LC Filter is the Wrong Tool for 60 Hz
+
+The LC filter values you mentioned (10–22 µH and 100 µF) create a low-pass filter with a corner frequency of roughly 3.4 kHz to 5 kHz. This means it is designed to pass frequencies below a few kHz and block frequencies above that.
+
+    Target Frequencies: This filter is perfectly suited for suppressing the high-pitched "whine" caused by a switch-mode power supply's switching action, which typically operates well above 20 kHz. In USB noise scenarios, the problematic interference is often these high-frequency spikes and "hash," not the fundamental 60 Hz frequency .
+
+    The Problem Frequency: Your 60 Hz hum is far below the filter's cutoff frequency. The LC filter will do virtually nothing to attenuate it. Low-frequency mains hum requires much larger inductors and capacitors (or a different circuit topology entirely) to be effectively filtered .
+
+⚠️ The Risk of Making Things Worse
+
+Adding this LC filter could introduce a new problem: resonance. An LC circuit can act like a tuned tank circuit. If the filter's resonant frequency happens to coincide with any noise on the power line, it can actually amplify that noise instead of reducing it. Furthermore, the inductor adds series resistance and can slow down the power supply's ability to respond to sudden current demands from the ESP32 (like when Wi-Fi starts transmitting), potentially causing voltage drops or brownouts .
+💡 What to Investigate Instead
+
+Since the LC filter is not the right fix, here are the more likely causes and solutions for 60 Hz hum in USB-powered setups:
+
+    The "Y-Capacitor" Leakage Current: This is a very common culprit. Most switch-mode USB power supplies (wall warts) contain a small "Y-capacitor" bridging the mains input and the low-voltage output to reduce electromagnetic interference. This capacitor allows a tiny amount of 50/60 Hz AC current to leak onto the USB ground. If this leakage current finds its way into your circuit's ground, it manifests as a hum . The most effective fix is to use a different power source, such as a USB battery bank or a linear power supply, which breaks the mains ground loop entirely .
+
+    Ground Loops: If your ESP32 is connected to a computer via USB for programming while also being powered by a separate USB supply, you can create a ground loop. This loop acts as an antenna for mains hum. Ensuring your entire setup is powered from a single, isolated source can help.
+
+    Switching Noise, Not Mains Hum: If the noise you are hearing is actually a high-pitched whine rather than a deep hum, then the LC filter might be relevant. However, for the ESP32 specifically, Espressif's own hardware guidelines recommend adding a 10 µF capacitor close to the analog power pins (VDD3P3) to stabilize the supply and suppress high-frequency noise, rather than a full LC filter on the main power input .
+
+In short, the LC filter is a valid solution for high-frequency switching noise, but it is the wrong tool for a 60 Hz mains hum problem.

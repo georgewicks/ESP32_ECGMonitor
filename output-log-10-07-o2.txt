@@ -1,0 +1,342 @@
+I (6256) wifi:AP's beacon interval = 102400 us, DTIM period = 1
+I (6276) wifi:<ba-add>idx:0 (ifx:0, ec:a9:40:3b:86:32), tid:6, ssn:2, winSize:64
+I (7466) esp_netif_handlers: sta ip: 10.0.0.17, mask: 255.255.255.0, gw: 10.0.0.1
+I (7466) ECGMon-WIFI: Successfully acquired IP: 10.0.0.17
+I (7466) ECGMon-WIFI: Connection completed (supposedly)
+I (7466) main-ECGMon:  Done with wifi_init_sta 
+I (7476) ECGMon-WIFI: Initializing SNTP Service...
+I (9476) ECGMon-WIFI: Waiting for network time sync... (1/10)
+I (11166) wifi:<ba-add>idx:1 (ifx:0, ec:a9:40:3b:86:32), tid:0, ssn:0, winSize:64
+I (11236) ECGMon-WIFI: Notification: System time synchronized successfully!
+I (11236) ECGMon-WIFI: Synchronized Date/Time: Wed Oct  7 18:47:50 2026
+I (11236) main-ECGMon: Waiting for system time to sync... (1/30)
+I (12236) main-ECGMon: NTP Synchronized successfully. Updating DS3231 RTC...
+I (12236) main-ECGMon: DS3231 successfully updated with Wi-Fi time.
+I (12236) main-ECGMon: Setup_ADC_SD: called
+I (12236) main-ECGMon: gpio_install_isr_service OK
+I (12246) main-ECGMon: gpio_isr_handler_add OK on GPIO 21
+I (12246) main-ECGMon: gpio_isr_handler_add OK on GPIO 7
+I (12256) main-ECGMon: adc_acquisition_task: chip 0 on GPIO 21
+I (12256) main-ECGMon: adc_acquisition_task: chip 1 on GPIO 7
+I (12256) main-ECGMon: Running... SD count = 0, ADC count = 0  ISR count = 0
+I (12266) main-ECGMon: sd_writer_task: called
+I (12286) main-ECGMon: Recording starts in 10 s...
+I (13286) main-ECGMon: Recording starts in 9 s...
+I (14266) main-ECGMon: Running... SD count = 0, ADC count = 2854  ISR count = 2854
+I (14286) main-ECGMon: Recording starts in 8 s...
+I (15286) main-ECGMon: Recording starts in 7 s...
+I (16266) main-ECGMon: Running... SD count = 0, ADC count = 5710  ISR count = 5710
+I (16286) main-ECGMon: Recording starts in 6 s...
+I (17286) main-ECGMon: Recording starts in 5 s...
+I (18266) main-ECGMon: Running... SD count = 0, ADC count = 8565  ISR count = 8565
+I (18286) main-ECGMon: Recording starts in 4 s...
+I (19286) main-ECGMon: Recording starts in 3 s...
+I (20266) main-ECGMon: Running... SD count = 0, ADC count = 11419  ISR count = 11419
+I (20286) main-ECGMon: Recording starts in 2 s...
+I (21286) main-ECGMon: Recording starts in 1 s...
+I (22266) main-ECGMon: Running... SD count = 0, ADC count = 14273  ISR count = 14273
+I (22286) main-ECGMon: *** RECORDING STARTED: remain still for 120 s ***
+I (24266) main-ECGMon: Running... SD count = 712, ADC count = 17132  ISR count = 17132
+I (26266) main-ECGMon: Running... SD count = 1410, ADC count = 19994  ISR count = 19997
+QRS ch2: R-peak at sample 1510, RR = 0 ms
+I (28266) main-ECGMon: Running... SD count = 2108, ADC count = 22860  ISR count = 22866
+QRS ch2: R-peak at sample 2619, RR = 3106 ms
+I (30266) main-ECGMon: Running... SD count = 2808, ADC count = 25714  ISR count = 25721
+QRS ch2: R-peak at sample 2983, RR = 1019 ms
+I (32266) main-ECGMon: Running... SD count = 3503, ADC count = 28575  ISR count = 28582
+I (32286) main-ECGMon: Recording... 110 s remaining
+QRS ch2: R-peak at sample 3716, RR = 2053 ms
+I (34266) main-ECGMon: Running... SD count = 4203, ADC count = 31437  ISR count = 31446
+QRS ch2: R-peak at sample 4064, RR = 974 ms
+QRS ch2: R-peak at sample 4447, RR = 1072 ms
+I (36266) main-ECGMon: Running... SD count = 4901, ADC count = 34276  ISR count = 34288
+QRS ch2: R-peak at sample 4798, RR = 983 ms
+QRS ch2: R-peak at sample 5001, RR = 568 ms
+QRS ch2: R-peak at sample 5167, RR = 464 ms
+QRS ch2: R-peak at sample 5346, RR = 501 ms
+QRS ch2: R-peak at sample 5530, RR = 515 ms
+I (38266) main-ECGMon: Running... SD count = 5600, ADC count = 37134  ISR count = 37147
+QRS ch2: R-peak at sample 5893, RR = 1016 ms
+I (40266) main-ECGMon: Running... SD count = 6298, ADC count = 39988  ISR count = 40003
+QRS ch2: R-peak at sample 6245, RR = 985 ms
+QRS ch2: R-peak at sample 6462, RR = 607 ms
+QRS ch2: R-peak at sample 6608, RR = 408 ms
+QRS ch2: R-peak at sample 6824, RR = 605 ms
+I (42266) main-ECGMon: Running... SD count = 6996, ADC count = 42838  ISR count = 42854
+I (42286) main-ECGMon: Recording... 100 s remaining
+QRS ch2: R-peak at sample 6981, RR = 439 ms
+QRS ch2: R-peak at sample 7192, RR = 591 ms
+QRS ch2: R-peak at sample 7344, RR = 425 ms
+I (44266) main-ECGMon: Running... SD count = 7694, ADC count = 45699  ISR count = 45716
+QRS ch2: R-peak at sample 7546, RR = 565 ms
+QRS ch2: R-peak at sample 7709, RR = 456 ms
+QRS ch2: R-peak at sample 7923, RR = 599 ms
+QRS ch2: R-peak at sample 8075, RR = 425 ms
+I (46266) main-ECGMon: Running... SD count = 8382, ADC count = 48546  ISR count = 48565
+QRS ch2: R-peak at sample 8278, RR = 568 ms
+QRS ch2: R-peak at sample 8441, RR = 456 ms
+QRS ch2: R-peak at sample 8645, RR = 571 ms
+QRS ch2: R-peak at sample 8795, RR = 420 ms
+I (48266) main-ECGMon: Running... SD count = 9090, ADC count = 51401  ISR count = 51421
+QRS ch2: R-peak at sample 9015, RR = 616 ms
+QRS ch2: R-peak at sample 9160, RR = 406 ms
+QRS ch2: R-peak at sample 9374, RR = 599 ms
+QRS ch2: R-peak at sample 9445, RR = 198 ms
+QRS ch2: R-peak at sample 9529, RR = 235 ms
+I (50266) main-ECGMon: Running... SD count = 9790, ADC count = 54241  ISR count = 54263
+QRS ch2: R-peak at sample 9730, RR = 563 ms
+QRS ch2: R-peak at sample 9894, RR = 459 ms
+QRS ch2: R-peak at sample 10069, RR = 490 ms
+QRS ch2: R-peak at sample 10258, RR = 529 ms
+I (52266) main-ECGMon: Running... SD count = 10488, ADC count = 57101  ISR count = 57123
+I (52286) main-ECGMon: Recording... 90 s remaining
+QRS ch2: R-peak at sample 10471, RR = 596 ms
+QRS ch2: R-peak at sample 10619, RR = 414 ms
+QRS ch2: R-peak at sample 10827, RR = 582 ms
+QRS ch2: R-peak at sample 10986, RR = 445 ms
+I (54266) main-ECGMon: Running... SD count = 11187, ADC count = 59951  ISR count = 59975
+QRS ch2: R-peak at sample 11194, RR = 582 ms
+QRS ch2: R-peak at sample 11333, RR = 389 ms
+QRS ch2: R-peak at sample 11561, RR = 638 ms
+QRS ch2: R-peak at sample 11637, RR = 212 ms
+QRS ch2: R-peak at sample 11709, RR = 201 ms
+I (56266) main-ECGMon: Running... SD count = 11884, ADC count = 62820  ISR count = 62846
+QRS ch2: R-peak at sample 11924, RR = 602 ms
+QRS ch2: R-peak at sample 12074, RR = 420 ms
+QRS ch2: R-peak at sample 12277, RR = 568 ms
+QRS ch2: R-peak at sample 12438, RR = 450 ms
+I (58266) main-ECGMon: Running... SD count = 12582, ADC count = 65688  ISR count = 65714
+QRS ch2: R-peak at sample 12580, RR = 397 ms
+QRS ch2: R-peak at sample 12651, RR = 198 ms
+QRS ch2: R-peak at sample 12804, RR = 428 ms
+QRS ch2: R-peak at sample 13015, RR = 591 ms
+I (60266) main-ECGMon: Running... SD count = 13281, ADC count = 68534  ISR count = 68561
+QRS ch2: R-peak at sample 13169, RR = 431 ms
+QRS ch2: R-peak at sample 13375, RR = 577 ms
+QRS ch2: R-peak at sample 13522, RR = 411 ms
+QRS ch2: R-peak at sample 13746, RR = 627 ms
+QRS ch2: R-peak at sample 13817, RR = 198 ms
+QRS ch2: R-peak at sample 13898, RR = 226 ms
+I (62266) main-ECGMon: Running... SD count = 13980, ADC count = 71388  ISR count = 71418
+I (62286) main-ECGMon: Recording... 80 s remaining
+QRS ch2: R-peak at sample 14098, RR = 560 ms
+QRS ch2: R-peak at sample 14266, RR = 470 ms
+QRS ch2: R-peak at sample 14478, RR = 593 ms
+I (64266) main-ECGMon: Running... SD count = 14677, ADC count = 74262  ISR count = 74293
+QRS ch2: R-peak at sample 14632, RR = 431 ms
+QRS ch2: R-peak at sample 14726, RR = 263 ms
+QRS ch2: R-peak at sample 14837, RR = 310 ms
+QRS ch2: R-peak at sample 14993, RR = 436 ms
+QRS ch2: R-peak at sample 15200, RR = 579 ms
+I (66266) main-ECGMon: Running... SD count = 15375, ADC count = 77122  ISR count = 77155
+QRS ch2: R-peak at sample 15354, RR = 431 ms
+QRS ch2: R-peak at sample 15567, RR = 596 ms
+QRS ch2: R-peak at sample 15641, RR = 207 ms
+QRS ch2: R-peak at sample 15723, RR = 229 ms
+I (68266) main-ECGMon: Running... SD count = 16072, ADC count = 79973  ISR count = 80008
+QRS ch2: R-peak at sample 15934, RR = 591 ms
+QRS ch2: R-peak at sample 16085, RR = 422 ms
+QRS ch2: R-peak at sample 16285, RR = 560 ms
+QRS ch2: R-peak at sample 16453, RR = 470 ms
+I (70266) main-ECGMon: Running... SD count = 16764, ADC count = 82839  ISR count = 82876
+QRS ch2: R-peak at sample 16663, RR = 588 ms
+QRS ch2: R-peak at sample 16822, RR = 445 ms
+QRS ch2: R-peak at sample 16893, RR = 198 ms
+QRS ch2: R-peak at sample 17028, RR = 378 ms
+QRS ch2: R-peak at sample 17187, RR = 445 ms
+QRS ch2: R-peak at sample 17390, RR = 568 ms
+I (72266) main-ECGMon: Running... SD count = 17469, ADC count = 85695  ISR count = 85734
+I (72286) main-ECGMon: Recording... 70 s remaining
+QRS ch2: R-peak at sample 17540, RR = 420 ms
+QRS ch2: R-peak at sample 17782, RR = 677 ms
+QRS ch2: R-peak at sample 17907, RR = 350 ms
+I (74266) main-ECGMon: Running... SD count = 18167, ADC count = 88534  ISR count = 88575
+QRS ch2: R-peak at sample 18092, RR = 518 ms
+QRS ch2: R-peak at sample 18275, RR = 512 ms
+QRS ch2: R-peak at sample 18449, RR = 487 ms
+QRS ch2: R-peak at sample 18652, RR = 568 ms
+I (76266) main-ECGMon: Running... SD count = 18865, ADC count = 91397  ISR count = 91438
+QRS ch2: R-peak at sample 18723, RR = 198 ms
+QRS ch2: R-peak at sample 18846, RR = 344 ms
+QRS ch2: R-peak at sample 19006, RR = 448 ms
+QRS ch2: R-peak at sample 19210, RR = 571 ms
+I (78266) main-ECGMon: Running... SD count = 19527, ADC count = 94251  ISR count = 94293
+QRS ch2: R-peak at sample 19360, RR = 420 ms
+QRS ch2: R-peak at sample 19586, RR = 633 ms
+QRS ch2: R-peak at sample 19766, RR = 504 ms
+I (80266) main-ECGMon: Running... SD count = 20054, ADC count = 97100  ISR count = 97142
+QRS ch2: R-peak at sample 20033, RR = 747 ms
+QRS ch3: R-peak at sample 20044, RR = 0 ms
+QRS ch2: R-peak at sample 20245, RR = 593 ms
+QRS ch2: R-peak at sample 20389, RR = 403 ms
+QRS ch2: R-peak at sample 20609, RR = 616 ms
+I (82266) main-ECGMon: Running... SD count = 20752, ADC count = 99952  ISR count = 99997
+I (82286) main-ECGMon: Recording... 60 s remaining
+QRS ch2: R-peak at sample 20699, RR = 252 ms
+QRS ch2: R-peak at sample 20770, RR = 198 ms
+QRS ch2: R-peak at sample 20974, RR = 571 ms
+QRS ch2: R-peak at sample 21126, RR = 425 ms
+I (84266) main-ECGMon: Running... SD count = 21432, ADC count = 102793  ISR count = 102838
+QRS ch2: R-peak at sample 21331, RR = 574 ms
+QRS ch2: R-peak at sample 21491, RR = 448 ms
+QRS ch2: R-peak at sample 21633, RR = 397 ms
+QRS ch2: R-peak at sample 21704, RR = 198 ms
+QRS ch2: R-peak at sample 21856, RR = 425 ms
+QRS ch2: R-peak at sample 21942, RR = 240 ms
+QRS ch2: R-peak at sample 22061, RR = 333 ms
+I (86266) main-ECGMon: Running... SD count = 22147, ADC count = 105637  ISR count = 105683
+QRS ch2: R-peak at sample 22214, RR = 428 ms
+QRS ch2: R-peak at sample 22423, RR = 585 ms
+QRS ch2: R-peak at sample 22574, RR = 422 ms
+I (88266) main-ECGMon: Running... SD count = 22846, ADC count = 108488  ISR count = 108536
+QRS ch2: R-peak at sample 22783, RR = 585 ms
+QRS ch2: R-peak at sample 22932, RR = 417 ms
+QRS ch2: R-peak at sample 23155, RR = 624 ms
+QRS ch2: R-peak at sample 23226, RR = 198 ms
+QRS ch2: R-peak at sample 23307, RR = 226 ms
+I (90266) main-ECGMon: Running... SD count = 23545, ADC count = 111337  ISR count = 111385
+QRS ch2: R-peak at sample 23519, RR = 593 ms
+QRS ch2: R-peak at sample 23671, RR = 425 ms
+QRS ch2: R-peak at sample 23854, RR = 512 ms
+QRS ch2: R-peak at sample 24036, RR = 509 ms
+I (92266) main-ECGMon: Running... SD count = 24243, ADC count = 114201  ISR count = 114250
+I (92286) main-ECGMon: Recording... 50 s remaining
+QRS ch2: R-peak at sample 24164, RR = 358 ms
+QRS ch2: R-peak at sample 24244, RR = 224 ms
+QRS ch2: R-peak at sample 24402, RR = 442 ms
+QRS ch2: R-peak at sample 24608, RR = 577 ms
+QRS ch2: R-peak at sample 24767, RR = 445 ms
+I (94266) main-ECGMon: Running... SD count = 24941, ADC count = 117046  ISR count = 117097
+QRS ch2: R-peak at sample 24974, RR = 579 ms
+QRS ch2: R-peak at sample 25124, RR = 420 ms
+QRS ch2: R-peak at sample 25336, RR = 593 ms
+QRS ch2: R-peak at sample 25418, RR = 229 ms
+QRS ch2: R-peak at sample 25493, RR = 210 ms
+I (96266) main-ECGMon: Running... SD count = 25641, ADC count = 119894  ISR count = 119945
+QRS ch2: R-peak at sample 25705, RR = 593 ms
+QRS ch2: R-peak at sample 25857, RR = 425 ms
+QRS ch2: R-peak at sample 26059, RR = 565 ms
+I (98266) main-ECGMon: Running... SD count = 26339, ADC count = 122758  ISR count = 122810
+QRS ch2: R-peak at sample 26222, RR = 456 ms
+QRS ch2: R-peak at sample 26428, RR = 577 ms
+QRS ch2: R-peak at sample 26586, RR = 442 ms
+QRS ch2: R-peak at sample 26789, RR = 568 ms
+I (100266) main-ECGMon: Running... SD count = 27036, ADC count = 125623  ISR count = 125676
+QRS ch2: R-peak at sample 26951, RR = 453 ms
+QRS ch2: R-peak at sample 27158, RR = 579 ms
+QRS ch2: R-peak at sample 27286, RR = 358 ms
+I (102266) main-ECGMon: Running... SD count = 27735, ADC count = 128482  ISR count = 128536
+QRS ch2: R-peak at sample 27519, RR = 652 ms
+QRS ch2: R-peak at sample 27590, RR = 198 ms
+QRS ch2: R-peak at sample 27672, RR = 229 ms
+I (102286) main-ECGMon: Recording... 40 s remaining
+QRS ch2: R-peak at sample 27878, RR = 577 ms
+QRS ch2: R-peak at sample 28042, RR = 459 ms
+QRS ch2: R-peak at sample 28232, RR = 532 ms
+I (104266) main-ECGMon: Running... SD count = 28432, ADC count = 131334  ISR count = 131392
+QRS ch2: R-peak at sample 28404, RR = 481 ms
+QRS ch2: R-peak at sample 28606, RR = 565 ms
+QRS ch2: R-peak at sample 28769, RR = 456 ms
+QRS ch2: R-peak at sample 28972, RR = 568 ms
+I (106266) main-ECGMon: Running... SD count = 29130, ADC count = 134193  ISR count = 134255
+QRS ch2: R-peak at sample 29133, RR = 450 ms
+QRS ch2: R-peak at sample 29331, RR = 554 ms
+QRS ch2: R-peak at sample 29493, RR = 453 ms
+I (108266) main-ECGMon: Running... SD count = 29828, ADC count = 137055  ISR count = 137119
+QRS ch2: R-peak at sample 29704, RR = 591 ms
+QRS ch2: R-peak at sample 29864, RR = 448 ms
+QRS ch2: R-peak at sample 30065, RR = 563 ms
+QRS ch2: R-peak at sample 30227, RR = 453 ms
+I (110266) main-ECGMon: Running... SD count = 30526, ADC count = 139897  ISR count = 139963
+QRS ch2: R-peak at sample 30439, RR = 593 ms
+QRS ch2: R-peak at sample 30590, RR = 422 ms
+QRS ch2: R-peak at sample 30778, RR = 526 ms
+QRS ch2: R-peak at sample 30955, RR = 495 ms
+QRS ch2: R-peak at sample 31125, RR = 476 ms
+I (112266) main-ECGMon: Running... SD count = 31224, ADC count = 142757  ISR count = 142827
+I (112286) main-ECGMon: Recording... 30 s remaining
+QRS ch2: R-peak at sample 31324, RR = 557 ms
+QRS ch2: R-peak at sample 31529, RR = 574 ms
+QRS ch2: R-peak at sample 31686, RR = 439 ms
+I (114266) main-ECGMon: Running... SD count = 31920, ADC count = 145607  ISR count = 145678
+QRS ch2: R-peak at sample 31888, RR = 565 ms
+QRS ch2: R-peak at sample 32054, RR = 464 ms
+QRS ch2: R-peak at sample 32255, RR = 563 ms
+QRS ch2: R-peak at sample 32417, RR = 453 ms
+I (116266) main-ECGMon: Running... SD count = 32617, ADC count = 148447  ISR count = 148520
+QRS ch2: R-peak at sample 32619, RR = 565 ms
+QRS ch2: R-peak at sample 32694, RR = 210 ms
+QRS ch2: R-peak at sample 32781, RR = 243 ms
+QRS ch2: R-peak at sample 32986, RR = 574 ms
+I (118266) main-ECGMon: Running... SD count = 33316, ADC count = 151288  ISR count = 151361
+QRS ch2: R-peak at sample 33145, RR = 445 ms
+QRS ch2: R-peak at sample 33341, RR = 549 ms
+QRS ch2: R-peak at sample 33509, RR = 470 ms
+QRS ch2: R-peak at sample 33714, RR = 574 ms
+QRS ch2: R-peak at sample 33874, RR = 448 ms
+I (120266) main-ECGMon: Running... SD count = 34014, ADC count = 154149  ISR count = 154223
+QRS ch2: R-peak at sample 34078, RR = 571 ms
+QRS ch2: R-peak at sample 34242, RR = 459 ms
+QRS ch2: R-peak at sample 34440, RR = 554 ms
+I (122266) main-ECGMon: Running... SD count = 34712, ADC count = 156999  ISR count = 157075
+I (122286) main-ECGMon: Recording... 20 s remaining
+QRS ch2: R-peak at sample 34576, RR = 380 ms
+QRS ch2: R-peak at sample 34809, RR = 652 ms
+W (123086) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (123126) main-ECGMon: ECG signal recovered (ch2 = 32653)
+QRS ch2: R-peak at sample 34880, RR = 198 ms
+QRS ch2: R-peak at sample 34962, RR = 229 ms
+QRS ch2: R-peak at sample 35179, RR = 607 ms
+I (124266) main-ECGMon: Running... SD count = 35410, ADC count = 159847  ISR count = 159927
+QRS ch2: R-peak at sample 35329, RR = 420 ms
+QRS ch2: R-peak at sample 35525, RR = 549 ms
+QRS ch2: R-peak at sample 35689, RR = 459 ms
+I (126266) main-ECGMon: Running... SD count = 36107, ADC count = 162707  ISR count = 162788
+QRS ch2: R-peak at sample 35863, RR = 487 ms
+QRS ch2: R-peak at sample 36053, RR = 532 ms
+QRS ch2: R-peak at sample 36259, RR = 577 ms
+QRS ch2: R-peak at sample 36418, RR = 445 ms
+QRS ch2: R-peak at sample 36621, RR = 568 ms
+I (128266) main-ECGMon: Running... SD count = 36804, ADC count = 165550  ISR count = 165635
+QRS ch2: R-peak at sample 36791, RR = 476 ms
+QRS ch2: R-peak at sample 36990, RR = 557 ms
+QRS ch2: R-peak at sample 37150, RR = 448 ms
+QRS ch2: R-peak at sample 37351, RR = 563 ms
+I (130266) main-ECGMon: Running... SD count = 37503, ADC count = 168409  ISR count = 168494
+QRS ch2: R-peak at sample 37505, RR = 431 ms
+QRS ch2: R-peak at sample 37720, RR = 602 ms
+QRS ch2: R-peak at sample 37791, RR = 198 ms
+QRS ch2: R-peak at sample 37876, RR = 238 ms
+I (132266) main-ECGMon: Running... SD count = 38202, ADC count = 171266  ISR count = 171351
+I (132286) main-ECGMon: Recording... 10 s remaining
+QRS ch2: R-peak at sample 38083, RR = 579 ms
+QRS ch2: R-peak at sample 38237, RR = 431 ms
+QRS ch2: R-peak at sample 38443, RR = 577 ms
+QRS ch2: R-peak at sample 38599, RR = 436 ms
+I (134266) main-ECGMon: Running... SD count = 38749, ADC count = 174129  ISR count = 174215
+QRS ch2: R-peak at sample 38788, RR = 529 ms
+QRS ch2: R-peak at sample 39008, RR = 616 ms
+QRS ch2: R-peak at sample 39226, RR = 610 ms
+I (136266) main-ECGMon: Running... SD count = 39383, ADC count = 176983  ISR count = 177073
+QRS ch2: R-peak at sample 39460, RR = 655 ms
+QRS ch2: R-peak at sample 39536, RR = 212 ms
+QRS ch2: R-peak at sample 39617, RR = 226 ms
+QRS ch2: R-peak at sample 39823, RR = 577 ms
+I (138266) main-ECGMon: Running... SD count = 40081, ADC count = 179846  ISR count = 179939
+QRS ch2: R-peak at sample 39981, RR = 442 ms
+QRS ch2: R-peak at sample 40179, RR = 554 ms
+QRS ch2: R-peak at sample 40342, RR = 456 ms
+QRS ch2: R-peak at sample 40515, RR = 484 ms
+I (140266) main-ECGMon: Running... SD count = 40779, ADC count = 182696  ISR count = 182789
+QRS ch2: R-peak at sample 40703, RR = 526 ms
+QRS ch2: R-peak at sample 40906, RR = 568 ms
+QRS ch2: R-peak at sample 41069, RR = 456 ms
+I (142266) main-ECGMon: Running... SD count = 41479, ADC count = 185538  ISR count = 185635
+I (142316) main-ECGMon: *** RECORDING COMPLETE: file closed. You may move now. ***
+I (142316) main-ECGMon: sd_writer_task: recording finished -- idle spin
+I (144266) main-ECGMon: Running... SD count = 41487, ADC count = 188393  ISR count = 188490
+I (146266) main-ECGMon: Running... SD count = 41487, ADC count = 191247  ISR count = 191344
+I (148266) main-ECGMon: Running... SD count = 41487, ADC count = 194104  ISR count = 194201
+I (150266) main-ECGMon: Running... SD count = 41487, ADC count = 196958  ISR count = 197055
+
+gwicks@gwicks-G465:~/ESP32-ECGMonitor$ 
