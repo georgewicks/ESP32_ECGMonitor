@@ -602,6 +602,9 @@ void sd_writer_task(void *pvParameters) {
     esp_err_t       retv;
 #ifdef  TEST_ECG_CSV
     FILE*           csv = NULL;
+    long            csv_records = 0;   /* successful fprintf writes        */
+    long            csv_errors  = 0;   /* failed fprintf writes             */
+    long            csv_start_size = 0;
 #endif
 
     ESP_LOGI(TAG, "%s: called", __func__);
@@ -630,6 +633,9 @@ void sd_writer_task(void *pvParameters) {
         ESP_LOGE(TAG, "Failed to open /sdcard/ecg_trace.csv for append");
     } else {
         setvbuf(csv, NULL, _IOFBF, 8192);
+        fseek(csv, 0L, SEEK_END);
+        csv_start_size = ftell(csv);
+        ESP_LOGI(TAG, "CSV opened for append; existing size = %ld bytes", csv_start_size);
     }
 #endif
 
@@ -701,7 +707,7 @@ void sd_writer_task(void *pvParameters) {
 #ifdef  TEST_ECG_CSV
                 if (csv != NULL) {
                     // Formats as: HH:MM:SS,Microseconds,Ch0,Ch1,Ch2,Ch3
-                    fprintf(csv, "%02d:%02d:%02d,%llu,%d,%d,%d,%d\n", 
+                    int nw = fprintf(csv, "%02d:%02d:%02d,%llu,%d,%d,%d,%d\n", 
                             global_wall_clock.tm_hour,
                             global_wall_clock.tm_min,
                             global_wall_clock.tm_sec,
@@ -710,6 +716,14 @@ void sd_writer_task(void *pvParameters) {
                             record.channels[1], 
                             record.channels[2], 
                             record.channels[3]);
+                    if (nw < 0) {
+                        if (csv_errors == 0) {
+                            ESP_LOGE(TAG, "fprintf to CSV failed");
+                        }
+                        csv_errors++;
+                    } else {
+                        csv_records++;
+                    }
                 }
 #endif
 #ifdef  PKG_SAMPLES_QRS
@@ -741,9 +755,12 @@ void sd_writer_task(void *pvParameters) {
                 if (elapsed >= pdMS_TO_TICKS(TEST_RECORD_SECONDS * 1000)) {
                     fflush(csv);
                     fsync(fileno(csv));
+                    fseek(csv, 0L, SEEK_END);
+                    long csv_end_size = ftell(csv);
                     fclose(csv);
                     csv = NULL;
-                    ESP_LOGI(TAG, "*** RECORDING COMPLETE: file closed. You may move now. ***");
+                    ESP_LOGI(TAG, "*** RECORDING COMPLETE: %ld records, %ld write errors, file %ld -> %ld bytes. You may move now. ***",
+                             csv_records, csv_errors, csv_start_size, csv_end_size);
                     break;
                 }
                 if ((xTaskGetTickCount() - last_status) >= pdMS_TO_TICKS(10000)) {
