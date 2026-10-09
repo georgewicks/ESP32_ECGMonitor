@@ -30,6 +30,7 @@
 #include "spoof_i2cdev.h"
 #include "common.h"
 #include "ADCCapture.h"
+#include "Logging.h"
 
 // For the configuration file on the AT24C32, located on the RTC board
 #include "i2c_eeprom.h"
@@ -311,6 +312,15 @@ void    InitSD_SPI(void)
 
     // Card is successfully mounted. Read/write via standard POSIX functions
     printf("Filesystem mounted. Card info: Name: %s\n", card->cid.name);
+
+    // Mirror ESP_LOG output (ESP_LOGI/ESP_LOGW/ESP_LOGE/...) to a file on the
+    // card so recordings can run without a USB serial connection. Early boot
+    // logs stay on UART only; everything after this point is captured too.
+    if (logging_start(MOUNT_POINT "/debug.log") == NULL) {
+        ESP_LOGE(TAG, "Failed to open debug.log for logging");
+    } else {
+        ESP_LOGI(TAG, "Log output mirrored to %s/debug.log", MOUNT_POINT);
+    }
     
     // Example Write
     FILE *f = fopen(MOUNT_POINT "/log.txt", "w");
