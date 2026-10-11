@@ -50,5 +50,12 @@ The following is a very rough sketch of the ECG system. NOTE: the drawing reflec
 # Additional Documentation
 * [Power-Supply Noise Guide for Makers](./docs/Power-Supply-Noise-Guide.md) — how to diagnose and fix 60 Hz mains hum vs. switching-regulator noise in this design (battery power, grounding, decoupling, and LC filters).
 
+# To restart the Jupyter Book:
 
+# 1. Activate your Python virtual environment
+source ../venv/bin/activate
 
+# 2. Spin up the local development preview server
+jupyter book start .
+
+# Launch the book: http://localhost:3000/
