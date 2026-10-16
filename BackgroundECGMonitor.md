@@ -11,13 +11,15 @@ I did, as a matter of fact! I had tried several statins, but each time I tried, 
 
 After the heart attack, I was strongly advised to go back on statins, and the aches and pains became quite prevalent. Once again, I tried several statins. Finally, my Cardiologist, Dr. Harris, suggested an injectable, Praluent, generic known as Alirocumab. This was considerably more expensive than the statins. While the price was lowered by the Medicare supplemental, it nevertheless, is quite expensive. It did succeed at lowering the cholesterol.
 
-In the meantime, the pain experienced in my arms, and in particular, my hands, became very intense. I was also having severe headaches again, and since I had a previous cervical fusion operation in 2016, I contacted a spinal specialist in 2025. I went to see a spinal pain clinic, and I received a spinal radiofrequency ablation procedure. It really did not help, and I went to see another pain specialist, Dr. Andrew Engel, who ordered an MRI of the cervical region. The MRI indicated severe problems in the cervical spine, and in January 2026, I had an anterior fusion C3, C4, performed by Dr. Musacchio, which was above the previous cervical spinal operation. 
+# The pain I associated with statins was probably caused in part by spinal stenosis
+
+In the meantime, the pain experienced in my arms, and in particular, my hands, became very intense. I was also having severe headaches again, and since I had a previous cervical fusion operation in 2016, I contacted a spinal specialist in 2025. I went to see a spinal pain clinic, and I received a spinal radiofrequency ablation procedure. It really did not help, and I went to see another pain specialist, Dr. Andrew Engel, who ordered an MRI of the cervical region. Dr. Engel's diagnosis was that the MRI indicated severe problems in the cervical spine. In January 2026, I had an anterior fusion C3, C4, performed by Dr. Musacchio, which was above the previous cervical spinal operation. 
 
 The operation was a great success. The pains in my arms and my hands were now gone. Interestingly, I noticed an unusual set of symptoms, that I had attributed to the past statin usage. I had pains in my arms and hands that seemed completely symmetric with respect to right and left limbs. One example, was severe pain in my right index finger but also in my left index finger as well. Pains in my thumbs and other fingers were also strangely symmetrical, with respect to right and left. This I associated with pain caused by the statins. Now with the operation being a success, not only was the pain in general relieved, but also the symmetrical nature of the pain was also gone. In the back of my mind, I knew that whatever the statin molecule is, it cannot "coordinate" the experience of pain on both right and left sides. Hindsight is 20/20, as the old saying goes, and thus I realized that the statin usage was not the principle cause of the aches and pain I had experienced.
 
 I did query Google AI, and a document was created that outlines the confusion between static pains and spinal stenosis. Please see docs/JupyterBook/Spinal Stenosis symptoms and statin-associated muscle symptoms (SAMS).odt
 
-# Microsoft Visual Studio Code. DeepSeek V4 Pro model and GitHub Copilot are the copilots for this project
+# How the work progressed: Microsoft Visual Studio Code. DeepSeek V4 Pro model and GitHub Copilot are the copilots for this project
 
 Being 70ish, post-recovery heart attack, and an ongoing cataract, forced me to consider as many sensible and useful tools as possible in order to complete it in any sort of reasonable time. I was reluctant to use AI to help me, but the health issues finally convinced me to research into what was needed in order to get it installed and working. I had already been working with Microsoft Visual Studio Code, along with the Espressif ESP-IDF extension.
 
@@ -28,7 +30,7 @@ I have had AI do both software and hardware work for the design and development 
 After intial It originally started as a rather involved debugging problem, in specific, a problem with data capture from the ADC board, the ADS1115, which is very powerful, but complex device to use.
 
 # What are the goals for ECG Monitor?
-* First and foremost is to be a cheap, continuous ECG monitor that has the ability to digitize and log ECG data from the various leads into a recording device. 
+* First and foremost, it should be a cheap, continuous ECG monitor that has the ability to digitize and log ECG data from the various leads into a recording device. 
 * Using a set of signal processing functions, have the device determine basic cardiac statistics, such as beats per minute (BPM), as well as signalling any cardiac events that should be notified to not only the patient, and if it can be provided, communicated to a health professional.
 * For extended period use, provide the storage and communication means for data transfer of ECG data.
 
