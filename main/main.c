@@ -31,6 +31,7 @@
 #include "common.h"
 #include "ADCCapture.h"
 #include "Logging.h"
+#include "ISHNE.h"
 
 // For the configuration file on the AT24C32, located on the RTC board
 #include "i2c_eeprom.h"
@@ -38,7 +39,29 @@
 #define MOUNT_POINT "/sdcard"
 
 #define TEST_ECG_CSV
+#define TEST_ECG_ISHNE
 #define PKG_SAMPLES_QRS
+
+/* ---------------------------------------------------------------------------
+ * ISHNE (Holter binary) output configuration.
+ *
+ * NOTE on amplitude resolution: the ISHNE "resolution" field is a signed
+ * 16-bit integer of nanovolts per LSB, so it can hold at most 32767 nV/LSB.
+ * The ADS1115 at PGA = +/-2.048 V has a true resolution of 62.5 uV =
+ * 62500 nV/LSB, which overflows. We therefore store the raw ADC counts with
+ * resolution 31250 nV/LSB (the +/-1.024 V value): the file is structurally
+ * valid and timing/shape are exact, but amplitude reads 0.5x too small.
+ * Proper fix: differential mode at max PGA (+/-0.256 V -> 7812 nV/LSB fits),
+ * which also removes the AD8232's ~1.5 V DC offset.
+ * ------------------------------------------------------------------------- */
+#define ISHNE_SAMPLE_RATE_HZ   (350)   /* nominal per-channel rate (actual ~353) */
+#define ISHNE_RESOLUTION_NV    (31250) /* see NOTE above: true value is 62500 */
+#define ISHNE_NLEADS           (1)
+/* Which ADC channel each ISHNE lead reads from, and the lead code. Only the
+ * AD8232 (ch2 = ADS1115 B AIN0) is connected today; verify the limb-lead code
+ * against the actual electrode placement (RA/LA/LL -> Lead I by default). */
+static const int16_t ishne_lead_spec[ISHNE_NLEADS]    = { ISHNE_LEAD_I };
+static const int     ishne_lead_channel[ISHNE_NLEADS] = { 2 };
 
 /* Self-recording test harness: after boot, count down TEST_SETTLE_SECONDS
  * (operator leans back and stays still), record for TEST_RECORD_SECONDS,
@@ -617,6 +640,10 @@ void sd_writer_task(void *pvParameters) {
     long            csv_errors  = 0;   /* failed fprintf writes             */
     long            csv_start_size = 0;
 #endif
+#ifdef  TEST_ECG_ISHNE
+    ishne_writer_t  ishne;
+    bool            ishne_active = false;
+#endif
 
     ESP_LOGI(TAG, "%s: called", __func__);
     if(bEnableSD == false)
@@ -657,6 +684,60 @@ void sd_writer_task(void *pvParameters) {
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
     ESP_LOGI(TAG, "*** RECORDING STARTED: remain still for %d s ***", TEST_RECORD_SECONDS);
+
+#ifdef  TEST_ECG_ISHNE
+    // One ISHNE file per recording, timestamped so consecutive boot/record
+    // cycles don't clobber each other.
+    {
+        time_t now_t = time(NULL);
+        struct tm tmv;
+        localtime_r(&now_t, &tmv);
+
+        char ecg_path[64];
+        snprintf(ecg_path, sizeof(ecg_path),
+                 MOUNT_POINT "/ecg_%04d%02d%02d_%02d%02d%02d.ecg",
+                 tmv.tm_year + 1900, tmv.tm_mon + 1, tmv.tm_mday,
+                 tmv.tm_hour, tmv.tm_min, tmv.tm_sec);
+
+        ishne_header_t hdr;
+        ishne_header_init(&hdr);
+        strncpy(hdr.first_name, "George", sizeof(hdr.first_name) - 1);
+        strncpy(hdr.last_name,  "Wicks",  sizeof(hdr.last_name)  - 1);
+        strncpy(hdr.patient_id, "GW-0001", sizeof(hdr.patient_id) - 1);
+        hdr.sex  = ISHNE_SEX_MALE;
+        hdr.race = ISHNE_RACE_CAUCASIAN;
+        hdr.birth_date[0] = ISHNE_LEAD_ABSENT;   /* unknown */
+        hdr.birth_date[1] = ISHNE_LEAD_ABSENT;
+        hdr.birth_date[2] = ISHNE_LEAD_ABSENT;
+        hdr.record_date[0] = (int16_t)tmv.tm_mday;
+        hdr.record_date[1] = (int16_t)(tmv.tm_mon + 1);
+        hdr.record_date[2] = (int16_t)(tmv.tm_year + 1900);
+        hdr.file_date[0]   = (int16_t)tmv.tm_mday;
+        hdr.file_date[1]   = (int16_t)(tmv.tm_mon + 1);
+        hdr.file_date[2]   = (int16_t)(tmv.tm_year + 1900);
+        hdr.start_time[0]  = (int16_t)tmv.tm_hour;
+        hdr.start_time[1]  = (int16_t)tmv.tm_min;
+        hdr.start_time[2]  = (int16_t)tmv.tm_sec;
+        hdr.nleads = ISHNE_NLEADS;
+        for (int l = 0; l < ISHNE_NLEADS; l++) {
+            hdr.lead_spec[l]  = ishne_lead_spec[l];
+            hdr.lead_qual[l]  = 1;
+            hdr.resolution[l] = ISHNE_RESOLUTION_NV;
+        }
+        hdr.pacemaker = 0;
+        strncpy(hdr.recorder, "ESP32-ECGMonitor", sizeof(hdr.recorder) - 1);
+        hdr.sample_rate = ISHNE_SAMPLE_RATE_HZ;
+
+        if (ishne_open(&ishne, ecg_path, &hdr) == 0) {
+            ishne_active = true;
+            ESP_LOGI(TAG, "ISHNE recording -> %s (%d lead(s), %d Hz)",
+                     ecg_path, ISHNE_NLEADS, ISHNE_SAMPLE_RATE_HZ);
+        } else {
+            ESP_LOGE(TAG, "Failed to open ISHNE file %s", ecg_path);
+        }
+    }
+#endif
+
     record_start = xTaskGetTickCount();
     last_flush = record_start;
     last_status = record_start;
@@ -737,6 +818,17 @@ void sd_writer_task(void *pvParameters) {
                     }
                 }
 #endif
+#ifdef  TEST_ECG_ISHNE
+                if (ishne_active) {
+                    int16_t ishne_buf[ISHNE_NLEADS];
+                    for (int l = 0; l < ISHNE_NLEADS; l++) {
+                        ishne_buf[l] = record.channels[ishne_lead_channel[l]];
+                    }
+                    if (ishne_write(&ishne, ishne_buf, 1) != 0) {
+                        ESP_LOGE(TAG, "ISHNE write failed");
+                    }
+                }
+#endif
 #ifdef  PKG_SAMPLES_QRS
                 AppendToECGPacket(&record);
 #endif
@@ -770,6 +862,18 @@ void sd_writer_task(void *pvParameters) {
                     long csv_end_size = ftell(csv);
                     fclose(csv);
                     csv = NULL;
+#ifdef  TEST_ECG_ISHNE
+                    if (ishne_active) {
+                        uint32_t ishne_samples = ishne.sample_count;
+                        if (ishne_close(&ishne) == 0) {
+                            ESP_LOGI(TAG, "ISHNE file closed (%lu samples/lead)",
+                                     (unsigned long)ishne_samples);
+                        } else {
+                            ESP_LOGE(TAG, "ISHNE close failed");
+                        }
+                        ishne_active = false;
+                    }
+#endif
                     ESP_LOGI(TAG, "*** RECORDING COMPLETE: %ld records, %ld write errors, file %ld -> %ld bytes. You may move now. ***",
                              csv_records, csv_errors, csv_start_size, csv_end_size);
                     break;
