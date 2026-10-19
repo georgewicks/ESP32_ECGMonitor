@@ -49,6 +49,7 @@ The following is a very rough sketch of the ECG system. NOTE: the drawing reflec
 
 # Additional Documentation
 * [Power-Supply Noise Guide for Makers](./docs/Power-Supply-Noise-Guide.md) — how to diagnose and fix 60 Hz mains hum vs. switching-regulator noise in this design (battery power, grounding, decoupling, and LC filters).
+* [How to Make CMakeLists.txt](./docs/HOW-TO-MAKE-CMAKELISTS.md) — a project-specific tutorial on the ESP-IDF build system, `idf_component_register()`, and adding a new component.
 
 # To restart the Jupyter Book:
 
