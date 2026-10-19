@@ -180,16 +180,11 @@ static volatile struct tm  global_wall_clock = {0};
 
 static void     do_restart(void)
 {
-    ESP_LOGI(TAG, "%s: called", __func__);
-
-    for (int i = 100; i >= 0; i--) {
-        printf("Restarting in %d seconds...\n", i);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
-    printf("Restarting now.\n");
+    /* Fatal-error recovery path (e.g. mutex creation failed): restart
+     * immediately rather than counting down — this isn't a graceful shutdown. */
+    ESP_LOGE(TAG, "%s: fatal error — restarting now", __func__);
     fflush(stdout);
     esp_restart();
-
 }
 
 static void     do_chip_info(void)
