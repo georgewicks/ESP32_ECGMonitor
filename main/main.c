@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <time.h>
+#include <math.h>
 #include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -32,6 +33,7 @@
 #include "ADCCapture.h"
 #include "Logging.h"
 #include "ISHNE.h"
+#include "MPU6050.h"
 
 // For the configuration file on the AT24C32, located on the RTC board
 #include "i2c_eeprom.h"
@@ -77,6 +79,19 @@ static const int     ishne_lead_channel[ISHNE_NLEADS] = { 2 };
 #define ECG_RAIL_MARGIN         (100)   /* LSB within full-scale => railed   */
 #define ECG_RAIL_SAMPLES        (70)    /* ~200 ms at ~357 SPS before warn   */
 
+/* Motion-artifact gating (MPU6050 accelerometer).
+ * |accel magnitude - 1g| is the "dynamic" acceleration: body motion raises it
+ * above the resting ~1g. When it stays above the threshold long enough we flag
+ * the segment as artifact so QRS/RR processing ignores it (raw ECG is still
+ * recorded). */
+#define MOTION_THRESHOLD_G        (0.20f)   /* dynamic g above which = motion  */
+#define MOTION_ON_COUNT           (5)       /* consecutive reads to assert      */
+#define MOTION_OFF_COUNT          (20)      /* consecutive reads to clear       */
+#define MOTION_SAMPLE_INTERVAL_MS (10)      /* ~100 Hz motion sampling          */
+
+static bool bMPU6050 = false;
+static volatile bool motion_artifact_active = false;
+
 /**
  * @brief Component and System testing
  * 
@@ -100,6 +115,7 @@ extern void     InitI2C(void);
 extern bool     IsADS1115Present(void);
 extern bool     IsADS1115BPresent(void);
 extern bool     IsDS3231Present(void);
+extern bool     IsMPU6050Present(void);
 
 extern bool     bWifi_Connected; // Global flag to indicate Wi-Fi connection status
 
@@ -113,6 +129,7 @@ extern i2c_master_dev_handle_t ads1115_b_handle; // 0x49
 extern i2c_master_dev_handle_t gpio_exp_handle; // 0x27  PCF8574
 extern i2c_master_dev_handle_t eeprom_handle;   // 0x57
 extern i2c_master_dev_handle_t rtc_handle;      // 0x68
+extern i2c_master_dev_handle_t mpu6050_handle;  // 0x69
 
 #ifdef  OLDER
 i2c_master_dev_handle_t dev_handle;
@@ -390,6 +407,21 @@ static void FindAndInitDevices(void)
     else
     {
         ESP_LOGE(TAG, "DS3231 not found! - RTC needed for timestamping!");
+    }
+
+    ESP_LOGI(TAG, "Check for MPU6050 ");
+    if(IsMPU6050Present())
+    {
+        if (mpu6050_init(mpu6050_handle) == ESP_OK) {
+            bMPU6050 = true;
+            ESP_LOGI(TAG, "MPU6050 (0x69) found and initialized - motion gating enabled");
+        } else {
+            ESP_LOGE(TAG, "MPU6050 (0x69) init failed - motion gating disabled");
+        }
+    }
+    else
+    {
+        ESP_LOGI(TAG, "MPU6050 (0x69) not found - motion gating disabled");
     }
     ESP_LOGI(TAG, "end FindAndInitDevices");
 }
@@ -825,7 +857,12 @@ void sd_writer_task(void *pvParameters) {
                 }
 #endif
 #ifdef  PKG_SAMPLES_QRS
-                AppendToECGPacket(&record);
+                // Skip QRS processing while motion is detected: RR intervals
+                // computed from motion artifact would be meaningless. The raw
+                // ECG is still recorded to CSV + ISHNE regardless.
+                if (!motion_artifact_active) {
+                    AppendToECGPacket(&record);
+                }
 #endif
                 got_mask = 0;
             }
@@ -892,6 +929,68 @@ void sd_writer_task(void *pvParameters) {
 }
 
 /**
+ * @brief Sample the MPU6050 and drive motion-artifact gating.
+ *
+ * Runs at ~100 Hz, writes a motion reference to /sdcard/motion.csv (microsecond
+ * timestamp + raw ax/ay/az) for offline adaptive filtering, and toggles the
+ * global motion_artifact_active flag used to gate on-device QRS processing.
+ */
+static void mpu6050_monitor_task(void *pv)
+{
+    (void)pv;
+    mpu6050_raw_t r;
+    int on_count = 0, off_count = 0;
+    TickType_t last_flush = xTaskGetTickCount();
+
+    FILE *motion_csv = fopen(MOUNT_POINT "/motion.csv", "a");
+    if (motion_csv != NULL) {
+        setvbuf(motion_csv, NULL, _IOFBF, 8192);
+        ESP_LOGI(TAG, "Motion reference logging -> " MOUNT_POINT "/motion.csv");
+    } else {
+        ESP_LOGW(TAG, "Failed to open " MOUNT_POINT "/motion.csv");
+    }
+
+    while (1) {
+        if (mpu6050_read_raw(mpu6050_handle, &r) == ESP_OK) {
+            float ax = r.accel_x / MPU6050_ACCEL_LSB_PER_G;
+            float ay = r.accel_y / MPU6050_ACCEL_LSB_PER_G;
+            float az = r.accel_z / MPU6050_ACCEL_LSB_PER_G;
+            float mag = sqrtf(ax * ax + ay * ay + az * az);
+            float dyn = fabsf(mag - 1.0f);   /* "dynamic" acceleration, gravity removed */
+
+            if (dyn > MOTION_THRESHOLD_G) {
+                if (++on_count >= MOTION_ON_COUNT && !motion_artifact_active) {
+                    motion_artifact_active = true;
+                    ESP_LOGW(TAG, "MOTION ARTIFACT: dynamic accel %.3f g", (double)dyn);
+                }
+                off_count = 0;
+            } else {
+                if (++off_count >= MOTION_OFF_COUNT && motion_artifact_active) {
+                    motion_artifact_active = false;
+                    ESP_LOGI(TAG, "Motion cleared (%.3f g)", (double)dyn);
+                }
+                on_count = 0;
+            }
+
+            if (motion_csv != NULL) {
+                fprintf(motion_csv, "%llu,%d,%d,%d\n",
+                        (unsigned long long)esp_timer_get_time(),
+                        r.accel_x, r.accel_y, r.accel_z);
+            }
+        } else {
+            ESP_LOGW(TAG, "MPU6050 read failed");
+        }
+
+        if (motion_csv != NULL && (xTaskGetTickCount() - last_flush) > pdMS_TO_TICKS(1000)) {
+            fflush(motion_csv);
+            fsync(fileno(motion_csv));
+            last_flush = xTaskGetTickCount();
+        }
+        vTaskDelay(pdMS_TO_TICKS(MOTION_SAMPLE_INTERVAL_MS));
+    }
+}
+
+/**
  * @brief Setup_ADC_SD: kick off the ADC and SD tasks.
  * 
  */
@@ -954,6 +1053,11 @@ void Setup_ADC_SD(void)
     xTaskCreatePinnedToCore(adc_acquisition_task, "ECG_AcqA", 8192, &chip_ctx[0], 10, NULL, 0);
     xTaskCreatePinnedToCore(adc_acquisition_task, "ECG_AcqB", 8192, &chip_ctx[1], 10, NULL, 1);
     xTaskCreatePinnedToCore(sd_writer_task, "SD_Write", 4096, NULL, 4, NULL, 1);
+
+    // Motion reference + artifact gating (only if the MPU6050 initialized).
+    if (bMPU6050) {
+        xTaskCreatePinnedToCore(mpu6050_monitor_task, "MPU_Mon", 4096, NULL, 6, NULL, 1);
+    }
 }
 
 void    post_sta_connected(void)

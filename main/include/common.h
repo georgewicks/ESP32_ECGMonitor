@@ -41,6 +41,7 @@
 #define PCF8574_ADDR		0x27
 #define DS3231_EEPROM_ADDR  0x57 //!< I2C address
 #define DS3231_ADDR         0x68 //!< I2C address
+#define MPU6050_ADDR        0x69 //!< MPU6050 (AD0 -> VDD; 0x68 is taken by the DS3231)
 
 // I2C GPIO 
 #define GPIO_I2C_SDA            GPIO_NUM_4

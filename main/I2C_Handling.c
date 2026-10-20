@@ -76,6 +76,11 @@ bool    IsDS3231Present(void)
     return i2c_device_list[DS3231_ADDR];
 }
 
+bool    IsMPU6050Present(void)
+{
+    return i2c_device_list[MPU6050_ADDR];
+}
+
 bool    IsScanOutput = OUTPUT_SCAN;
 
 bool    bDS3231 = false;        // Is there a DS3231 RTC?
@@ -91,6 +96,7 @@ i2c_master_dev_handle_t gpio_exp_handle; // 0x27  PCF8574
 i2c_master_dev_handle_t eeprom_handle;   // 0x57
 i2c_master_dev_handle_t rtc_handle;      // 0x68
 i2c_master_dev_handle_t ads1115_b_handle; // 0x49  second ADS1115
+i2c_master_dev_handle_t mpu6050_handle;  // 0x69  MPU6050 (AD0 -> VDD)
 
 /**
  * @brief i2c master initialization
@@ -175,6 +181,16 @@ void i2c_master_init(void)
 		.scl_wait_us = 20000, // keep clock stretching only where needed
 	};
 	i2c_master_bus_add_device(bus_handle, &rtc_cfg, &rtc_handle);
+
+	// MPU6050 at 0x69 (AD0 -> VDD because the DS3231 owns 0x68). It is also a
+	// clock-stretcher, so allow a generous scl_wait_us.
+	i2c_device_config_t mpu6050_cfg = {
+		.dev_addr_length = I2C_ADDR_BIT_LEN_7,
+		.device_address = MPU6050_ADDR,
+		.scl_speed_hz = 400000,
+		.scl_wait_us = 20000,
+	};
+	i2c_master_bus_add_device(bus_handle, &mpu6050_cfg, &mpu6050_handle);
 
 
     vTaskDelay(1000/portTICK_PERIOD_MS);
