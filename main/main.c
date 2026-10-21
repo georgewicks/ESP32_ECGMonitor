@@ -44,6 +44,12 @@
 #define TEST_ECG_ISHNE
 #define PKG_SAMPLES_QRS
 
+/* Interactive SD debug: after each init attempt, pause and let the operator
+ * press Y (continue boot) or N (re-run the SD init). Helps chase flaky
+ * breadboard wiring without reflashing between fixes. */
+#define SD_DEBUG_INTERACTIVE   (1)
+#define SD_DEBUG_CLOCK_KHZ     (400)   /* slow SPI while probing marginal wiring */
+
 /* ---------------------------------------------------------------------------
  * ISHNE (Holter binary) output configuration.
  *
@@ -281,6 +287,107 @@ void    Init_EEPROM(void)
 
 
 /* -------------------------------------------------------------------------------------------------------------- */
+
+/**
+ * @brief Interactive SD debug: probe the card, then let the operator decide
+ * whether to continue booting or re-run the probe after fixing the wiring.
+ *
+ * Runs at a slow SPI clock (SD_DEBUG_CLOCK_KHZ) because flaky breadboard
+ * wiring often works at low speed and fails at the default 20 MHz. The SPI
+ * bus is initialized once (it cannot be re-initialized); only the card probe
+ * is repeated.
+ */
+void    InitSD_SPI_debug(void)
+{
+    ESP_LOGI(TAG, "%s: interactive mode (Y=continue, N=re-init)", __func__);
+
+    if(bEnableSD == false)
+    {
+        ESP_LOGI(TAG, "MicroSD is not enabled! -- exiting");
+        return;
+    }
+
+    // 1. SPI bus init: once only.
+    spi_bus_config_t bus_cfg = {
+        .mosi_io_num = PIN_NUM_MOSI,
+        .miso_io_num = PIN_NUM_MISO,
+        .sclk_io_num = PIN_NUM_CLK,
+        .quadwp_io_num = -1,
+        .quadhd_io_num = -1,
+        .max_transfer_sz = 4000,
+    };
+    if (spi_bus_initialize(SPI2_HOST, &bus_cfg, SPI_DMA_CH_AUTO) != ESP_OK) {
+        printf("Failed to initialize SPI bus.\n");
+        return;
+    }
+
+    esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+        .format_if_mount_failed = true,
+        .max_files = 5,
+        .allocation_unit_size = 16 * 1024
+    };
+
+    sdmmc_host_t host = SDSPI_HOST_DEFAULT();
+    host.slot = SPI2_HOST;
+    host.max_freq_khz = SD_DEBUG_CLOCK_KHZ;
+
+    sdspi_device_config_t slot_config = SDSPI_DEVICE_CONFIG_DEFAULT();
+    slot_config.gpio_cs = PIN_NUM_CS;
+    slot_config.host_id = SPI2_HOST;
+
+    sdmmc_card_t *card = NULL;
+
+    for (int attempt = 1; ; attempt++) {
+        printf("\n--- SD init attempt #%d ---\n", attempt);
+        card = NULL;
+        esp_err_t ret = esp_vfs_fat_sdspi_mount(MOUNT_POINT, &host, &slot_config,
+                                                &mount_config, &card);
+        if (ret == ESP_OK) {
+            printf("MOUNT OK. Card info: Name: %s\n", card->cid.name);
+        } else if (ret == ESP_FAIL) {
+            printf("MOUNT FAILED (ESP_FAIL): filesystem mount failed.\n");
+        } else {
+            printf("MOUNT FAILED (0x%x = %s). Check wiring.\n", ret, esp_err_to_name(ret));
+        }
+
+        printf(">>> Press Y to continue booting, or N to re-run SD init: ");
+        fflush(stdout);
+
+        char line[8] = {0};
+        if (fgets(line, sizeof(line), stdin) == NULL) {
+            printf("(no console input) continuing boot.\n");
+            break;
+        }
+
+        if (line[0] == 'Y' || line[0] == 'y') {
+            break;
+        }
+
+        /* 'N' (or anything else): clean up and re-probe. */
+        if (ret == ESP_OK) {
+            esp_vfs_fat_sdcard_unmount(MOUNT_POINT, card);
+            card = NULL;
+        }
+    }
+
+    if (card != NULL) {
+        // Mirror ESP_LOG output to the card now that it is mounted.
+        if (logging_start(MOUNT_POINT "/debug.log") == NULL) {
+            ESP_LOGE(TAG, "Failed to open debug.log for logging");
+        } else {
+            ESP_LOGI(TAG, "Log output mirrored to %s/debug.log", MOUNT_POINT);
+        }
+
+        FILE *f = fopen(MOUNT_POINT "/log.txt", "w");
+        if (f != NULL) {
+            fprintf(f, "Hello from ESP32-S3! Data logged successfully.\n");
+            fclose(f);
+            printf("File written successfully.\n");
+        }
+    } else {
+        printf("Proceeding WITHOUT a mounted SD card (file writes will fail).\n");
+    }
+}
 
 /**
  * @brief For handling the MicroSD card adapter in SPI mode.
@@ -1114,7 +1221,11 @@ void app_main(void)
 
 
     // change the order of initializations - ruling out problems regarding the uSD 
+#if SD_DEBUG_INTERACTIVE
+    InitSD_SPI_debug();
+#else
     InitSD_SPI();
+#endif
 
     // unscientific hunch, but putting in a slight delay to insure synchronization
     vTaskDelay(200/portTICK_PERIOD_MS);
