@@ -50,6 +50,10 @@
 #define SD_DEBUG_INTERACTIVE   (1)
 #define SD_DEBUG_CLOCK_KHZ     (400)   /* slow SPI while probing marginal wiring */
 
+/* CSV writer retry: survive transient SD-card write glitches. */
+#define CSV_WRITE_RETRIES      (3)
+#define CSV_RETRY_DELAY_MS     (5)
+
 /* ---------------------------------------------------------------------------
  * ISHNE (Holter binary) output configuration.
  *
@@ -933,15 +937,23 @@ void sd_writer_task(void *pvParameters) {
 #ifdef  TEST_ECG_CSV
                 if (csv != NULL) {
                     // Formats as: HH:MM:SS,Microseconds,Ch0,Ch1,Ch2,Ch3
-                    int nw = fprintf(csv, "%02d:%02d:%02d,%llu,%d,%d,%d,%d\n", 
-                            global_wall_clock.tm_hour,
-                            global_wall_clock.tm_min,
-                            global_wall_clock.tm_sec,
-                            record.micro_timestamp,
-                            record.channels[0], 
-                            record.channels[1], 
-                            record.channels[2], 
-                            record.channels[3]);
+                    // Retry a few times on a transient SD write glitch.
+                    int nw = -1;
+                    for (int attempt = 0; attempt < CSV_WRITE_RETRIES && nw < 0; attempt++) {
+                        nw = fprintf(csv, "%02d:%02d:%02d,%llu,%d,%d,%d,%d\n",
+                                global_wall_clock.tm_hour,
+                                global_wall_clock.tm_min,
+                                global_wall_clock.tm_sec,
+                                record.micro_timestamp,
+                                record.channels[0],
+                                record.channels[1],
+                                record.channels[2],
+                                record.channels[3]);
+                        if (nw < 0 && attempt + 1 < CSV_WRITE_RETRIES) {
+                            clearerr(csv);
+                            vTaskDelay(pdMS_TO_TICKS(CSV_RETRY_DELAY_MS));
+                        }
+                    }
                     if (nw < 0) {
                         if (csv_errors == 0) {
                             ESP_LOGE(TAG, "fprintf to CSV failed");
