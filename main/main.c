@@ -49,6 +49,7 @@
  * breadboard wiring without reflashing between fixes. */
 #define SD_DEBUG_INTERACTIVE   (1)
 #define SD_DEBUG_CLOCK_KHZ     (400)   /* slow SPI while probing marginal wiring */
+#define SD_RETRY_DELAY_MS      (2000)  /* delay between auto-retry probes */
 
 /* CSV writer retry: survive transient SD-card write glitches. */
 #define CSV_WRITE_RETRIES      (3)
@@ -359,8 +360,12 @@ void    InitSD_SPI_debug(void)
 
         char line[8] = {0};
         if (fgets(line, sizeof(line), stdin) == NULL) {
-            printf("(no console input) continuing boot.\n");
-            break;
+            /* No console input available (USB unplugged, or a capture-only
+             * monitor): auto-retry so reseating a wire recovers on its own
+             * without requiring a keypress. */
+            printf("(no console input) auto-retrying in %d s...\n", SD_RETRY_DELAY_MS / 1000);
+            vTaskDelay(pdMS_TO_TICKS(SD_RETRY_DELAY_MS));
+            continue;
         }
 
         if (line[0] == 'Y' || line[0] == 'y') {
@@ -372,6 +377,7 @@ void    InitSD_SPI_debug(void)
             esp_vfs_fat_sdcard_unmount(MOUNT_POINT, card);
             card = NULL;
         }
+        vTaskDelay(pdMS_TO_TICKS(SD_RETRY_DELAY_MS));
     }
 
     if (card != NULL) {
