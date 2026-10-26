@@ -1,0 +1,5 @@
+# Personal note: How this project came about
+
+Personally, this design came about because of a very serious health crisis that I went through, namely a heart attack. In April, 2024, I was moving some extremely heavy bags of soil for my garden, when I felt tremendous pressure in both shoulder, and I grew very fatigued. I wound up first in the Emergency Room at Skokie Hospital, where the medical team first stabilized me, and prepared me for transport to Evanston Hospital. Arriving at Evanston Hospital, I was immediately sent to their Cardiac Cath Lab, where I underwent a Cardiac Catheterization procedure, and two stents were inserted into the cardiac arteries. There was more than 90% blockage. I received excellent from the Emergency care team at Skokie Hospital, and then from the Cardiac Care teams at Evanston Hospital. I am forever grateful to the excellent physicians, nurses, and the other clinicians at Endeavor Health.
+
+This was a devastating health event for me, and as I recovered, I was determined to finish an ECG monitoring project I had started a few years prior to this crisis. This event did push me to resurrect this project.

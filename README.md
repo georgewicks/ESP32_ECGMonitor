@@ -1,10 +1,6 @@
 # ESP32-ECGMonitor
 * This is a low-cost continuous real-time ECG monitor using Espressif's ESP32 architecture, along with their ESP-IDF framework. The bulk of the code is in C, and it is accessible from a GitHub repository. We are using cheap, off-the-shelf components that are easily acquired.
 
-Personally, this design came about because of a very serious health crisis that I went through, namely a heart attack. In April, 2024, I was moving some extremely heavy bags of soil for my garden, when I felt tremendous pressure in both shoulder, and I grew very fatigued. I wound up first in the Emergency Room at Skokie Hospital, where the medical team first stabilized me, and prepared me for transport to Evanston Hospital. Arriving at Evanston Hospital, I was immediately sent to their Cardiac Cath Lab, where I underwent a Cardiac Catheterization procedure, and two stents were inserted into the cardiac arteries. There was more than 90% blockage. I received excellent from the Emergency care team at Skokie Hospital, and then from the Cardiac Care teams at Evanston Hospital. I am forever grateful to the excellent physicians, nurses, and the other clinicians at Endeavor Health.
-
-This was a devastating health event for me, and as I recovered, I was determined to finish an ECG monitoring project I had started a few years prior to this crisis. This event did push me to resurrect this project.
-
 The following is a very rough sketch of the ECG system. NOTE: the drawing reflects the use of an ESP32-DevKit, but that has since been changed to now use a smaller ESP32 board, the ESP32S3-supermini board.
 
 * <img src="./images/ECG-Flow.jpg" alt="ECG Flow Diagram" width="40%">
@@ -18,7 +14,7 @@ The following is a very rough sketch of the ECG system. NOTE: the drawing reflec
     * The RTC (Real-time clock **(7)**) will add time data that is inserted into the MicroSD adapter **(6)**, thus providing time stamped ECG charting for clinical technicians who are monitoring the data.
 
 * The primary hardware components of the project are:
-    - **ESP32 DevKit WROOM-32U**. (Note, I have recently tried the **ESP32S3**, which is smaller, and that works well)
+    - **ESP32 DevKit WROOM-32U**. (Note, I have recently tried the **ESP32S3 supermini board**, which is smaller, and that works well)
         * <img src="./images/small-ESP32S3-sm.jpg" alt="ESP32S3" width="30%">
     - **(1) ADS1115 Breakout boards. 16-bit ADC, 4 ADC channels**
         * <img src="./images/ads1115" alt="ADS1115" width="30%">
@@ -48,6 +44,15 @@ The following is a very rough sketch of the ECG system. NOTE: the drawing reflec
     * Optionally, a LCD screen if present and configured can be updated with the new data as well.
 
 # Additional Documentation
+
+# Component cost estimations
+See: COST-ESTIMATES.md
+
+# Personal details
+See: PERSONAL-NOTES.md
+
+
+
 * [Power-Supply Noise Guide for Makers](./docs/Power-Supply-Noise-Guide.md) — how to diagnose and fix 60 Hz mains hum vs. switching-regulator noise in this design (battery power, grounding, decoupling, and LC filters).
 * [How to Make CMakeLists.txt](./docs/HOW-TO-MAKE-CMAKELISTS.md) — a project-specific tutorial on the ESP-IDF build system, `idf_component_register()`, and adding a new component.
 

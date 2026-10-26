@@ -1,0 +1,419 @@
+Build:Mar 27 2021
+rst:0x1 (POWERON),boot:0x8 (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x14f0
+load:0x403c8700,len:0xda0
+load:0x403cb700,len:0x2f54
+entry 0x403c8908
+I (24) boot: ESP-IDF v6.0.2 2nd stage bootloader
+I (25) boot: compile time Oct  7 2026 13:50:28
+I (25) boot: Multicore bootloader
+I (25) boot: chip revision: v0.2
+I (28) boot: efuse block revision: v1.3
+I (31) boot.esp32s3: Boot SPI Speed : 80MHz
+I (35) boot.esp32s3: SPI Mode       : DIO
+I (39) boot.esp32s3: SPI Flash Size : 2MB
+I (43) boot: Enabling RNG early entropy source...
+I (47) boot: Partition Table:
+I (50) boot: ## Label            Usage          Type ST Offset   Length
+I (56) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+I (63) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+I (69) boot:  2 factory          factory app      00 00 00010000 00100000
+I (76) boot: End of partition table
+I (79) esp_image: segment 0: paddr=00010020 vaddr=3c0b0020 size=228d4h (141524) map
+I (112) esp_image: segment 1: paddr=000328fc vaddr=3fc9a800 size=05230h ( 21040) load
+I (117) esp_image: segment 2: paddr=00037b34 vaddr=40374000 size=084e4h ( 34020) load
+I (125) esp_image: segment 3: paddr=00040020 vaddr=42000020 size=a1058h (659544) map
+I (246) esp_image: segment 4: paddr=000e1080 vaddr=4037c4e4 size=0e268h ( 57960) load
+I (259) esp_image: segment 5: paddr=000ef2f0 vaddr=50000000 size=00024h (    36) load
+I (269) boot: Loaded app from partition at offset 0x10000
+I (269) boot: Disabling RNG early entropy source...
+I (279) cpu_start: Multicore app
+I (288) cpu_start: GPIO 44 and 43 are used as console UART I/O pins
+I (288) cpu_start: Pro cpu start user code
+I (289) cpu_start: cpu freq: 160000000 Hz
+I (290) app_init: Application information:
+I (294) app_init: Project name:     ESP32-ECGMonitor
+I (299) app_init: App version:      720ed40-dirty
+I (303) app_init: Compile time:     Oct 21 2026 11:24:01
+I (308) app_init: ELF file SHA256:  af24c353c...
+I (312) app_init: ESP-IDF:          v6.0.2
+I (316) efuse_init: Min chip rev:     v0.0
+I (320) efuse_init: Max chip rev:     v0.99 
+I (324) efuse_init: Chip rev:         v0.2
+I (328) heap_init: Initializing. RAM available for dynamic allocation:
+I (334) heap_init: At 3FCA53A0 len 00044370 (272 KiB): RAM
+I (339) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (344) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+I (350) heap_init: At 600FE000 len 00001FE8 (7 KiB): RTCRAM
+I (356) spi_flash: detected chip: generic
+I (359) spi_flash: flash io: dio
+W (362) spi_flash: Detected size(16384k) larger than the size in the binary image header(2048k). Using the size in the binary image header.
+I (374) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+I (380) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+I (387) main_task: Started on CPU0
+I (407) main_task: Calling app_main()
+I (407) main-ECGMon: app_main: starting
+I (407) main-ECGMon: do_chip_info started
+This is esp32s3 chip with 2 CPU core(s), WiFi/BLE, silicon revision v0.2, 2MB external flash
+Minimum free heap size: 321820 bytes
+I (417) I2C_Handling: InitI2C: starting
+I (917) I2C_Handling: ./main/I2C_Handling.c: called
+I (917) I2C_Handling: &bus_handle = 0x3fca10e8
+I (917) I2C_Handling: ads1115_handle = 0x3fce9f94
+I (917) I2C_Handling: ads1115_b_handle = 0x3fce9fc8
+I (917) I2C_Handling: gpio_exp_handle = 0x3fce9ffc
+I (1927) I2C_Handling: Starting I2C scanner on bus 0...
+I (2927) I2C_Handling: 
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+40: -- -- -- -- -- -- -- -- 48 49 -- -- -- -- -- -- 
+50: -- -- -- -- -- -- -- 57 -- -- -- -- -- -- -- -- 
+60: -- -- -- -- -- -- -- -- 68 69 -- -- -- -- -- -- 
+70: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+I (4967) main-ECGMon: FindAndInitDevices: called
+I (4967) main-ECGMon: ADS1115 #1 (0x48) found - do the initialization
+I (4967) ads111x: ads111x_init_desc
+I (4977) ads111x: ADS1115 devhandle = 0x3fce9f94
+I (4977) I2C_Handling: ads111x_init_desc = 0(ESP_OK)
+I (4977) I2C_Handling: Setting low threshold...
+I (4987) I2C_Handling: Setting high threshold...
+I (4987) I2C_Handling: Lo thresh readback = 0x0000
+I (4997) I2C_Handling: Hi thresh readback = 0x8000
+I (4997) main-ECGMon: ADS1115 #2 (0x49) found - do the initialization
+I (5007) ads111x: ads111x_init_desc
+I (5007) ads111x: ADS1115 devhandle = 0x3fce9fc8
+I (5017) I2C_Handling: ads111x_init_desc(B) = 0(ESP_OK)
+I (5017) main-ECGMon: Check for DS3231 
+I (5017) main-ECGMon: DS3231 found - do the initialization
+I (5027) I2C_Handling: InitDS3231 called
+I (5027) main-ECGMon: Check for MPU6050 
+I (5047) main-ECGMon: MPU6050 (0x69) found and initialized - motion gating enabled
+I (5047) main-ECGMon: end FindAndInitDevices
+I (5047) main-ECGMon: Init the PCF8574
+I (5047) main-ECGMon: InitSD_SPI_debug: interactive mode (Y=continue, N=re-init)
+
+--- SD init attempt #1 ---
+I (5057) sdspi_transaction: cmd=52, R1 response: command not supported
+I (5107) sdspi_transaction: cmd=5, R1 response: command not supported
+MOUNT OK. Card info: Name: SD08G
+>>> Press Y to continue booting, or N to re-run SD init: (no console input) continuing boot.
+I (5177) main-ECGMon: Log output mirrored to /sdcard/debug.log
+File written successfully.
+I (5547) main-ECGMon: ESP_WIFI_MODE_STA
+I (5547) pp: pp rom version: e7ae62f
+I (5547) net80211: net80211 rom version: e7ae62f
+I (5557) wifi:wifi driver task: 3fcac534, prio:23, stack:6656, core=0
+I (5567) wifi:wifi firmware version: 00ad238
+I (5567) wifi:wifi certification version: v7.0
+I (5567) wifi:config NVS flash: enabled
+I (5567) wifi:config nano formatting: disabled
+I (5567) wifi:Init data frame dynamic rx buffer num: 32
+I (5577) wifi:Init static rx mgmt buffer num: 5
+I (5577) wifi:Init management short buffer num: 32
+I (5587) wifi:Init dynamic tx buffer num: 32
+I (5587) wifi:Init static tx FG buffer num: 2
+I (5587) wifi:Init static rx buffer size: 1600
+I (5597) wifi:Init static rx buffer num: 10
+I (5597) wifi:Init dynamic rx buffer num: 32
+I (5607) wifi_init: rx ba win: 6
+I (5607) wifi_init: accept mbox: 6
+I (5607) wifi_init: tcpip mbox: 32
+I (5607) wifi_init: udp mbox: 6
+I (5617) wifi_init: tcp mbox: 6
+I (5617) wifi_init: tcp tx win: 5760
+I (5617) wifi_init: tcp rx win: 5760
+I (5627) wifi_init: tcp mss: 1440
+I (5627) wifi_init: WiFi IRAM OP enabled
+I (5627) wifi_init: WiFi RX IRAM OP enabled
+I (5637) ECGMon-WIFI:  **** *** SSID = GandInet
+I (5637) phy_init: phy_version 712,87e8c20e,Apr 13 2026,18:51:10
+I (5687) wifi:mode : sta (1c:db:d4:93:d3:58)
+I (5687) wifi:enable tsf
+I (5687) ECGMon-WIFI: Total APs scanned = 0
+I (5687) ECGMon-WIFI: Waiting for connection
+I (6297) wifi:new:<6,0>, old:<1,0>, ap:<255,255>, sta:<6,0>, prof:1, snd_ch_cfg:0x0
+I (6297) wifi:state: init -> auth (0xb0)
+I (6307) wifi:state: auth -> assoc (0x0)
+I (6317) wifi:state: assoc -> run (0x10)
+I (6357) wifi:connected with GandInet, aid = 3, channel 6, BW20, bssid = ec:a9:40:3b:86:32
+I (6357) wifi:security: WPA2-PSK, phy: bgn, rssi: -43, cipher(pairwise:0x3, group:0x3), pmf:0
+I (6357) wifi:pm start, type: 1
+
+I (6357) wifi:dp: 1, bi: 102400, li: 3, scale listen interval from 307200 us to 307200 us
+I (6367) wifi:set rx beacon pti, rx_bcn_pti: 0, bcn_timeout: 25000, mt_pti: 0, mt_time: 10000
+I (6387) wifi:<ba-add>idx:0 (ifx:0, ec:a9:40:3b:86:32), tid:6, ssn:2, winSize:64
+I (6417) wifi:AP's beacon interval = 102400 us, DTIM period = 1
+I (7627) esp_netif_handlers: sta ip: 10.0.0.17, mask: 255.255.255.0, gw: 10.0.0.1
+I (7627) ECGMon-WIFI: Successfully acquired IP: 10.0.0.17
+I (7627) ECGMon-WIFI: Connection completed (supposedly)
+I (7627) main-ECGMon:  Done with wifi_init_sta 
+I (7637) ECGMon-WIFI: Initializing SNTP Service...
+I (9637) ECGMon-WIFI: Waiting for network time sync... (1/10)
+I (11017) wifi:<ba-add>idx:1 (ifx:0, ec:a9:40:3b:86:32), tid:0, ssn:0, winSize:64
+I (11097) ECGMon-WIFI: Notification: System time synchronized successfully!
+I (11097) ECGMon-WIFI: Synchronized Date/Time: Wed Oct 21 13:16:35 2026
+I (11097) main-ECGMon: Waiting for system time to sync... (1/30)
+I (12107) main-ECGMon: NTP Synchronized successfully. Updating DS3231 RTC...
+I (12107) main-ECGMon: DS3231 successfully updated with Wi-Fi time.
+I (12107) wifi:state: run -> init (0x0)
+I (12117) wifi:pm stop, total sleep time: 4914552 us / 5751580 us
+
+I (12117) wifi:<ba-del>idx:1, tid:0
+I (12117) wifi:<ba-del>idx:0, tid:6
+I (12127) ECGMon-WIFI: Wi-Fi disconnected, reason=8
+I (12157) wifi:flush txq
+I (12157) wifi:stop sw txq
+I (12157) wifi:lmac stop hw txq
+I (12157) ECGMon-WIFI: Wi-Fi stopped after NTP sync (power saving)
+I (12157) main-ECGMon: Setup_ADC_SD: called
+I (12157) main-ECGMon: gpio_install_isr_service OK
+I (12167) main-ECGMon: gpio_isr_handler_add OK on GPIO 21
+I (12167) main-ECGMon: gpio_isr_handler_add OK on GPIO 7
+I (12177) main-ECGMon: adc_acquisition_task: chip 0 on GPIO 21
+I (12177) main-ECGMon: adc_acquisition_task: chip 1 on GPIO 7
+I (12177) main-ECGMon: Running... SD count = 0, ADC count = 0  ISR count = 0
+I (12187) main-ECGMon: sd_writer_task: called
+I (12367) main-ECGMon: Motion reference logging -> /sdcard/motion.csv
+I (12587) main-ECGMon: CSV opened for append; existing size = 1186435 bytes
+I (12587) main-ECGMon: Recording starts in 10 s...
+I (13587) main-ECGMon: Recording starts in 9 s...
+I (14187) main-ECGMon: Running... SD count = 0, ADC count = 2890  ISR count = 2890
+I (16957) main-ECGMon: Recording starts in 8 s...
+I (17957) main-ECGMon: Running... SD count = 0, ADC count = 8324  ISR count = 8324
+I (17957) main-ECGMon: Recording starts in 7 s...
+I (18957) main-ECGMon: Recording starts in 6 s...
+I (19957) main-ECGMon: Running... SD count = 0, ADC count = 11237  ISR count = 11238
+I (19957) main-ECGMon: Recording starts in 5 s...
+I (20957) main-ECGMon: Recording starts in 4 s...
+I (21957) main-ECGMon: Running... SD count = 0, ADC count = 14123  ISR count = 14125
+I (21957) main-ECGMon: Recording starts in 3 s...
+I (22957) main-ECGMon: Recording starts in 2 s...
+I (23957) main-ECGMon: Running... SD count = 0, ADC count = 17047  ISR count = 17049
+I (24057) main-ECGMon: Recording starts in 1 s...
+I (25057) main-ECGMon: *** RECORDING STARTED: remain still for 120 s ***
+I (25787) main-ECGMon: ISHNE recording -> /sdcard/ecg_20261021_131649.ecg (1 lead(s), 350 Hz)
+I (25957) main-ECGMon: Running... SD count = 153, ADC count = 19918  ISR count = 19923
+W (26357) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (26577) main-ECGMon: ECG signal recovered (ch2 = 32546)
+I (27957) main-ECGMon: Running... SD count = 422, ADC count = 22811  ISR count = 22817
+W (29897) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (29997) main-ECGMon: ECG signal recovered (ch2 = 32617)
+I (30527) main-ECGMon: Running... SD count = 843, ADC count = 26531  ISR count = 26538
+W (30637) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (31107) main-ECGMon: ECG signal recovered (ch2 = 32540)
+I (32527) main-ECGMon: Running... SD count = 1582, ADC count = 29430  ISR count = 29439
+W (32617) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (33077) main-ECGMon: ECG signal recovered (ch2 = 32525)
+W (33647) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (34317) main-ECGMon: ECG signal recovered (ch2 = 32482)
+I (34557) main-ECGMon: Running... SD count = 2272, ADC count = 32375  ISR count = 32386
+I (35787) main-ECGMon: Recording... 110 s remaining
+I (36557) main-ECGMon: Running... SD count = 2934, ADC count = 35277  ISR count = 35288
+QRS ch3: R-peak at sample 2799, RR = 0 ms
+W (36807) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (36927) main-ECGMon: ECG signal recovered (ch2 = 32335)
+W (38117) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (38127) main-ECGMon: ECG signal recovered (ch2 = 32645)
+I (38557) main-ECGMon: Running... SD count = 3566, ADC count = 38176  ISR count = 38190
+W (38717) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (38967) main-ECGMon: ECG signal recovered (ch2 = 32349)
+I (40557) main-ECGMon: Running... SD count = 4197, ADC count = 41090  ISR count = 41105
+W (41237) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (41487) main-ECGMon: ECG signal recovered (ch2 = 32585)
+W (42457) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (42627) main-ECGMon: Running... SD count = 4979, ADC count = 44079  ISR count = 44096
+I (42677) main-ECGMon: ECG signal recovered (ch2 = 32401)
+W (44427) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+QRS ch2: R-peak at sample 5397, RR = 0 ms
+I (44627) main-ECGMon: Running... SD count = 5656, ADC count = 46982  ISR count = 46999
+I (44907) main-ECGMon: ECG signal recovered (ch2 = 32326)
+W (44927) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (44987) main-ECGMon: ECG signal recovered (ch2 = 32626)
+W (45667) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (45787) main-ECGMon: Recording... 100 s remaining
+I (45887) main-ECGMon: ECG signal recovered (ch2 = 32264)
+W (46267) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (46417) main-ECGMon: ECG signal recovered (ch2 = 32131)
+I (46627) main-ECGMon: Running... SD count = 6311, ADC count = 49873  ISR count = 49892
+W (47517) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (47737) main-ECGMon: ECG signal recovered (ch2 = 32465)
+I (48627) main-ECGMon: Running... SD count = 6947, ADC count = 52771  ISR count = 52790
+W (48827) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (48877) main-ECGMon: ECG signal recovered (ch2 = 32525)
+QRS ch3: R-peak at sample 7303, RR = 12616 ms
+W (50627) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (50637) main-ECGMon: ECG signal recovered (ch2 = 32559)
+I (50777) main-ECGMon: Running... SD count = 7751, ADC count = 55883  ISR count = 55905
+I (52777) main-ECGMon: Running... SD count = 8420, ADC count = 58793  ISR count = 58816
+QRS ch3: R-peak at sample 8543, RR = 3473 ms
+QRS ch3: R-peak at sample 8725, RR = 509 ms
+W (54417) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (54647) main-ECGMon: ECG signal recovered (ch2 = 32649)
+I (54947) main-ECGMon: Running... SD count = 9108, ADC count = 61940  ISR count = 61963
+I (55787) main-ECGMon: Recording... 90 s remaining
+QRS ch3: R-peak at sample 9256, RR = 1487 ms
+QRS ch3: R-peak at sample 9381, RR = 350 ms
+W (56267) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (56347) main-ECGMon: ECG signal recovered (ch2 = 32407)
+I (56947) main-ECGMon: Running... SD count = 9804, ADC count = 64837  ISR count = 64860
+W (57547) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (58127) main-ECGMon: ECG signal recovered (ch2 = 32376)
+W (58907) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (58947) main-ECGMon: Running... SD count = 10492, ADC count = 67732  ISR count = 67757
+I (58967) main-ECGMon: ECG signal recovered (ch2 = 32586)
+W (60847) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (60947) main-ECGMon: Running... SD count = 11159, ADC count = 70639  ISR count = 70665
+QRS ch2: R-peak at sample 11035, RR = 15792 ms
+QRS ch3: R-peak at sample 11059, RR = 4700 ms
+I (61187) main-ECGMon: ECG signal recovered (ch2 = 32648)
+W (62537) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (62947) main-ECGMon: Running... SD count = 11790, ADC count = 73537  ISR count = 73564
+I (63367) main-ECGMon: ECG signal recovered (ch2 = 32662)
+I (64947) main-ECGMon: Running... SD count = 12371, ADC count = 76435  ISR count = 76462
+I (65787) main-ECGMon: Recording... 80 s remaining
+W (66817) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (66877) main-ECGMon: ECG signal recovered (ch2 = 32342)
+I (66967) main-ECGMon: Running... SD count = 13051, ADC count = 79364  ISR count = 79392
+I (68967) main-ECGMon: Running... SD count = 13713, ADC count = 82266  ISR count = 82295
+I (71107) main-ECGMon: Running... SD count = 14465, ADC count = 85379  ISR count = 85408
+W (71827) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (71887) main-ECGMon: ECG signal recovered (ch2 = 32577)
+W (73167) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (73177) main-ECGMon: Running... SD count = 15129, ADC count = 88389  ISR count = 88419
+I (73177) main-ECGMon: ECG signal recovered (ch2 = 32642)
+W (74317) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (74337) main-ECGMon: ECG signal recovered (ch2 = 32408)
+I (75177) main-ECGMon: Running... SD count = 15811, ADC count = 91294  ISR count = 91326
+I (75787) main-ECGMon: Recording... 70 s remaining
+QRS ch2: R-peak at sample 16072, RR = 14109 ms
+W (76757) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (76757) main-ECGMon: ECG signal recovered (ch2 = 27982)
+I (77177) main-ECGMon: Running... SD count = 16335, ADC count = 94208  ISR count = 94241
+QRS ch3: R-peak at sample 16692, RR = 15778 ms
+I (79287) main-ECGMon: Running... SD count = 17089, ADC count = 97272  ISR count = 97305
+W (79937) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (80067) main-ECGMon: ECG signal recovered (ch2 = 32563)
+QRS ch3: R-peak at sample 17196, RR = 1411 ms
+QRS ch3: R-peak at sample 17495, RR = 837 ms
+W (81077) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (81287) main-ECGMon: Running... SD count = 17777, ADC count = 100181  ISR count = 100216
+I (81357) main-ECGMon: ECG signal recovered (ch2 = 32376)
+W (82297) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (82547) main-ECGMon: ECG signal recovered (ch2 = 32349)
+I (83287) main-ECGMon: Running... SD count = 18440, ADC count = 103084  ISR count = 103121
+W (84907) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (85287) main-ECGMon: Running... SD count = 19071, ADC count = 105987  ISR count = 106025
+I (85397) main-ECGMon: ECG signal recovered (ch2 = 4722)
+I (85917) main-ECGMon: Recording... 60 s remaining
+QRS ch3: R-peak at sample 19202, RR = 4781 ms
+I (87287) main-ECGMon: Running... SD count = 19785, ADC count = 108891  ISR count = 108930
+W (87317) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (87937) main-ECGMon: ECG signal recovered (ch2 = 32553)
+I (89427) main-ECGMon: Running... SD count = 20325, ADC count = 111983  ISR count = 112024
+W (91277) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (91327) main-ECGMon: ECG signal recovered (ch2 = 32446)
+I (91427) main-ECGMon: Running... SD count = 21014, ADC count = 114888  ISR count = 114930
+W (92667) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (92687) main-ECGMon: ECG signal recovered (ch2 = 32469)
+I (93427) main-ECGMon: Running... SD count = 21691, ADC count = 117794  ISR count = 117839
+I (95427) main-ECGMon: Running... SD count = 22223, ADC count = 120691  ISR count = 120735
+I (96127) main-ECGMon: Recording... 50 s remaining
+QRS ch2: R-peak at sample 22263, RR = 17341 ms
+W (96867) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (96887) main-ECGMon: ECG signal recovered (ch2 = 32657)
+I (97807) main-ECGMon: Running... SD count = 22855, ADC count = 124143  ISR count = 124189
+I (99807) main-ECGMon: Running... SD count = 23486, ADC count = 127046  ISR count = 127093
+QRS ch2: R-peak at sample 23822, RR = 4366 ms
+I (101867) main-ECGMon: Running... SD count = 24264, ADC count = 130040  ISR count =130087
+QRS ch3: R-peak at sample 24188, RR = 13966 ms
+W (103207) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (103297) main-ECGMon: ECG signal recovered (ch2 = 32620)
+I (103867) main-ECGMon: Running... SD count = 24846, ADC count = 132941  ISR count =132989
+QRS ch3: R-peak at sample 24769, RR = 1627 ms
+I (105867) main-ECGMon: Running... SD count = 25473, ADC count = 135835  ISR count =135887
+I (106137) main-ECGMon: Recording... 40 s remaining
+I (108037) main-ECGMon: Running... SD count = 26220, ADC count = 138987  ISR count =139040
+QRS ch3: R-peak at sample 26565, RR = 5030 ms
+QRS ch3: R-peak at sample 26717, RR = 425 ms
+I (110117) main-ECGMon: Running... SD count = 26908, ADC count = 142011  ISR count =142066
+I (112287) main-ECGMon: Running... SD count = 27658, ADC count = 145153  ISR count =145209
+W (112877) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (113407) main-ECGMon: ECG signal recovered (ch2 = 32604)
+I (114287) main-ECGMon: Running... SD count = 28339, ADC count = 148056  ISR count =148114
+I (116137) main-ECGMon: Recording... 30 s remaining
+I (116287) main-ECGMon: Running... SD count = 28954, ADC count = 150945  ISR count =151004
+QRS ch3: R-peak at sample 28894, RR = 6098 ms
+I (118287) main-ECGMon: Running... SD count = 29569, ADC count = 153854  ISR count =153913
+QRS ch3: R-peak at sample 29838, RR = 2644 ms
+QRS ch3: R-peak at sample 30086, RR = 694 ms
+I (120337) main-ECGMon: Running... SD count = 30350, ADC count = 156821  ISR count =156882
+W (121607) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (121977) main-ECGMon: ECG signal recovered (ch2 = 32405)
+I (122337) main-ECGMon: Running... SD count = 31004, ADC count = 159739  ISR count =159800
+QRS ch3: R-peak at sample 31130, RR = 2924 ms
+I (124337) main-ECGMon: Running... SD count = 31619, ADC count = 162639  ISR count =162702
+W (125707) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+I (125717) main-ECGMon: ECG signal recovered (ch2 = 32657)
+I (126227) main-ECGMon: Recording... 20 s remaining
+I (126377) main-ECGMon: Running... SD count = 32357, ADC count = 165602  ISR count =165665
+I (128377) main-ECGMon: Running... SD count = 32999, ADC count = 168489  ISR count =168554
+E (128667) sdmmc_cmd: sdmmc_write_sectors_dma: sdmmc_send_cmd_send_status returned 0x107
+E (128667) diskio_sdmmc: sdmmc_write_blocks failed (0x107)
+E (128667) main-ECGMon: fprintf to CSV failed
+W (128687) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+QRS ch2: R-peak at sample 33062, RR = 25882 ms
+E (128717) sdmmc_cmd: sdmmc_write_sectors_dma: sdmmc_send_cmd returned 0x105, failedto get status (0x107)
+E (128717) diskio_sdmmc: sdmmc_write_blocks failed (0x105)
+I (129017) main-ECGMon: ECG signal recovered (ch2 = 31478)
+QRS ch2: R-peak at sample 33399, RR = 943 ms
+I (130377) main-ECGMon: Running... SD count = 33698, ADC count = 171404  ISR count =171469
+W (130987) main-ECGMon: LEADS OFF? ECG ch2 railed at 32767 for >= 70 samples (~196 ms)
+QRS ch2: R-peak at sample 33871, RR = 1322 ms
+I (131317) main-ECGMon: ECG signal recovered (ch2 = 32326)
+I (132377) main-ECGMon: Running... SD count = 34392, ADC count = 174315  ISR count =174380
+I (134377) main-ECGMon: Running... SD count = 35088, ADC count = 177219  ISR count =177284
+QRS ch3: R-peak at sample 35167, RR = 11308 ms
+QRS ch3: R-peak at sample 35341, RR = 487 ms
+QRS ch3: R-peak at sample 35490, RR = 417 ms
+I (136227) main-ECGMon: Recording... 10 s remaining
+I (136377) main-ECGMon: Running... SD count = 35783, ADC count = 180113  ISR count =180178
+I (138377) main-ECGMon: Running... SD count = 36478, ADC count = 183007  ISR count =183072
+E (138747) sdmmc_cmd: sdmmc_send_cmd_num_of_written_blocks: sdmmc_send_app_cmd returned 0x107, failed to get number of written write blocks
+E (138747) sdmmc_cmd: sdmmc_write_sectors_dma: sdmmc_send_cmd_num_of_written_blocks returned 0x105
+E (138757) sdmmc_cmd: sdmmc_write_sectors_dma: sdmmc_send_cmd returned 0x105, failedto get status (0x107)
+E (138767) diskio_sdmmc: sdmmc_write_blocks failed (0x105)
+E (138767) main-ECGMon: ISHNE write failed
+I (140377) main-ECGMon: Running... SD count = 37172, ADC count = 185906  ISR count =185971
+QRS ch3: R-peak at sample 37256, RR = 4946 ms
+I (142377) main-ECGMon: Running... SD count = 37867, ADC count = 188807  ISR count =188872
+QRS ch3: R-peak at sample 38337, RR = 3028 ms
+I (144377) main-ECGMon: Running... SD count = 38562, ADC count = 191712  ISR count =191777
+E (145787) sdmmc_cmd: sdmmc_write_sectors_dma: sdmmc_send_cmd returned 0x105, failedto get status (0x107)
+I (146377) main-ECGMon: Running... SD count = 39053, ADC count = 194605  ISR count =194670
+E (155787) diskio_sdmmc: sdmmc_write_blocks failed (0x105)
+I (158377) main-ECGMon: Running... SD count = 39053, ADC count = 211851  ISR count =211916
+E (165787) main-ECGMon: ISHNE close failed
+I (165787) main-ECGMon: *** RECORDING COMPLETE: 39035 records, 18 write errors, file1186435 -> 2478080 bytes. You may move now. ***
+I (165787) main-ECGMon: sd_writer_task: recording finished -- idle spin
+I (167787) main-ECGMon: Running... SD count = 39053, ADC count = 225383  ISR count =225448
+I (169787) main-ECGMon: Running... SD count = 39053, ADC count = 228249  ISR count =228314
+I (171787) main-ECGMon: Running... SD count = 39053, ADC count = 231162  ISR count =231227
+I (173787) main-ECGMon: Running... SD count = 39053, ADC count = 234080  ISR count =234145
+I (175787) main-ECGMon: Running... SD count = 39053, ADC count = 236971  ISR count =237036
+I (177787) main-ECGMon: Running... SD count = 39053, ADC count = 239833  ISR count =239898
+I (179787) main-ECGMon: Running... SD count = 39053, ADC count = 242773  ISR count =242838
+I (181787) main-ECGMon: Running... SD count = 39053, ADC count = 245660  ISR count =245725
+I (183787) main-ECGMon: Running... SD count = 39053, ADC count = 248527  ISR count =248592
+I (185787) main-ECGMon: Running... SD count = 39053, ADC count = 251408  ISR count =251473
+I (187787) main-ECGMon: Running... SD count = 39053, ADC count = 254307  ISR count =254372
+I (189787) main-ECGMon: Running... SD count = 39053, ADC count = 257192  ISR count =257257
+I (191787) main-ECGMon: Running... SD count = 39053, ADC count = 260063  ISR count =260128
+I (193787) main-ECGMon: Running... SD count = 39053, ADC count = 262963  ISR count =263028
+I (195787) main-ECGMon: Running... SD count = 39053, ADC count = 265865  ISR count =265930
+
+gwicks@gwicks-G465:~/ESP32-ECGMonitor$ 
