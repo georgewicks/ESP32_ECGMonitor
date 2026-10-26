@@ -51,7 +51,8 @@ See: COST-ESTIMATES.md
 # Personal details
 See: PERSONAL-NOTES.md
 
-
+# Some AI generated notes on the design of the ECG monitor
+* [Design Notes](./docs/DESIGN.md) — a high-level overview of the design of the ECG monitor, including the hardware and software architecture, and the interface between the ESP32S3 and the peripheral devices.
 
 * [Power-Supply Noise Guide for Makers](./docs/Power-Supply-Noise-Guide.md) — how to diagnose and fix 60 Hz mains hum vs. switching-regulator noise in this design (battery power, grounding, decoupling, and LC filters).
 * [How to Make CMakeLists.txt](./docs/HOW-TO-MAKE-CMAKELISTS.md) — a project-specific tutorial on the ESP-IDF build system, `idf_component_register()`, and adding a new component.
