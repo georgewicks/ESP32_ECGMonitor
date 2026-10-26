@@ -26,7 +26,7 @@ The following is a very rough sketch of the ECG system. NOTE: the drawing reflec
          * <img src="./images/microsd-board.JPG" alt="MicroSD board" width="30%">
 
 * The primary software components of the project are:
-    * We will be using ESP-IDF, v5.2.7. This will necessitate the use of the I2C_master driver.
+    * We will be using ESP-IDF, v6.0.2. This will necessitate the use of the I2C_master driver.
     * The ESP-IDF package includes a Real Time Operation System, called FreeRTOS. This provides the framework for orderly handling of the data collection and the various tasks that are undertaken by the microcontroller.
     * The software components for the various devices used by the ECG monitor - the drivers for the ADC chips, the RTC board, the MicroSD adapter.
     * The cardiac data analysis will need to handle QRS detection, which gives the basic heart rate data. The data analysis component may also be expanded to include more features which can be very useful for monitoring patient health.
