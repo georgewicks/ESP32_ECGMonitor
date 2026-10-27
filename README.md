@@ -59,6 +59,7 @@ See: PERSONAL-NOTES.md
 
 * [Power-Supply Noise Guide for Makers](./docs/Power-Supply-Noise-Guide.md) — how to diagnose and fix 60 Hz mains hum vs. switching-regulator noise in this design (battery power, grounding, decoupling, and LC filters).
 * [How to Make CMakeLists.txt](./docs/HOW-TO-MAKE-CMAKELISTS.md) — a project-specific tutorial on the ESP-IDF build system, `idf_component_register()`, and adding a new component.
+* [Unipolar 12-Lead ECG Design Notes](./docs/UNIPOLAR-12-LEAD.md) — corrected notes on extending the system to a standard 12-lead ECG (Wilson's Central Terminal, 8×AD8232 + 4×ADS1115 wiring, lead derivation, and ISHNE output).
 
 # To restart the Jupyter Book:
 
