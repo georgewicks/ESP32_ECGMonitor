@@ -41,7 +41,7 @@ The following is a very rough sketch of the ECG system. NOTE: the drawing reflec
     * When the maximum for the packet size is reached, the ECG Process Task is called.
     * This in turn encompasses QRS Detection, which will be handled by the Pan-Tompkins algorithm, which result in the primary metrics, the QRS duration and the R-R interval.
     * Following that, an ST-segment analyzer is called.
-    * There may be one or more algorthms called after that (TBD)
+    * There may be one or more algorithms called after that (TBD)
     * The recording of the data follows, with a call to generate a timestamp for the packet trace
     * The data is written to the MicroSD card.
     * Optionally, a LCD screen if present and configured can be updated with the new data as well.
