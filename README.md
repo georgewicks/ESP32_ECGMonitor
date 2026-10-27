@@ -1,4 +1,7 @@
 # ESP32-ECGMonitor
+
+[简体中文](./README.zh-CN.md)
+
 * This is a low-cost continuous real-time ECG monitor using Espressif's ESP32 architecture, along with their ESP-IDF framework. The bulk of the code is in C, and it is accessible from a GitHub repository. We are using cheap, off-the-shelf components that are easily acquired.
 
 The following is a very rough sketch of the ECG system. NOTE: the drawing reflects the use of an ESP32-DevKit, but that has since been changed to now use a smaller ESP32 board, the ESP32S3-supermini board.
